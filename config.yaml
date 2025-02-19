@@ -1,0 +1,42 @@
+# 股票列表配置
+stocks:
+  - AAPL   # 苹果
+  - MSFT   # 微软
+  - GOOGL  # 谷歌
+  - AMZN   # 亚马逊
+  - META   # Meta
+  - NVDA   # 英伟达
+  - TSLA   # 特斯拉
+  - SOFI   # SoFi
+  - PLTR   # Palantir
+
+# 分析设置
+analysis:
+  # 回溯时间（天）
+  lookback_days: 365
+  
+  # RSI 设置
+  rsi:
+    period: 14
+    oversold_threshold: 25
+    overbought_threshold: 75
+  
+  # EMA 周期设置
+  ema_periods:
+    short_term: [5, 10, 20]
+    medium_term: [50, 60]
+    long_term: [120, 200]
+
+# 输出设置
+output:
+  # 图表设置
+  plot:
+    figure_size: [15, 8]
+    dpi: 300
+    
+  # 文件名格式
+  filename_patterns:
+    full_analysis: "{symbol}_full_analysis.csv"
+    alerts: "{symbol}_alerts.csv"
+    plot: "{symbol}_analysis_plot.png"
+    report: "{symbol}_report.md"
