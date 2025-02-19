@@ -1,0 +1,69 @@
+<html>
+<head>
+    <title>股票分析报告</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .up { color: #4CAF50; }
+        .down { color: #f44336; }
+        .alert { color: #ff9800; }
+        .alert-text { color: #ff9800; font-weight: bold; }
+        img { max-width: 100%; height: auto; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>股票分析报告</h1>
+    <h2>概览</h2>
+    <p>详细数据已保存到 <a href="stock_analysis.xlsx">stock_analysis.xlsx</a></p>
+    <table>
+        <tr>
+            <th>股票代码</th>
+            <th>当前价格</th>
+            <th>价格变化</th>
+            <th>RSI</th>
+            <th>警报数量</th>
+        </tr>
+
+    <tr>
+        <td>AAPL</td>
+        <td>244.47</td>
+        <td class="down">-0.13 (-0.05%)</td>
+        <td>57.85</td>
+        <td class="">0</td>
+    </tr>
+    
+    <tr>
+        <td>MSFT</td>
+        <td>409.64</td>
+        <td class="up">1.21 (0.30%)</td>
+        <td>17.54</td>
+        <td class="alert">5</td>
+    </tr>
+    
+    <tr>
+        <td>GOOGL</td>
+        <td>183.77</td>
+        <td class="down">-1.46 (-0.79%)</td>
+        <td>37.77</td>
+        <td class="alert">4</td>
+    </tr>
+    
+    </table>
+    <h2>详细分析</h2>
+
+    <div class="stock-detail">
+        <h3>AAPL 详细分析</h3>
+        <img src="images/AAPL_analysis_plot.png" alt="AAPL 分析图表">
+    </div>
+    <div class="stock-detail">
+        <h3>MSFT 详细分析</h3>
+        <img src="images/MSFT_analysis_plot.png" alt="MSFT 分析图表">
+    <h4>警报信息</h4><ul><li class="alert-text">RSI超卖: 17.54</li><li class="alert-text">价格 (409.64) 跌破 5日均线 (410.08)</li><li class="alert-text">价格 (409.64) 跌破 10日均线 (412.62)</li><li class="alert-text">价格 (409.64) 跌破 20日均线 (417.48)</li><li class="alert-text">价格 (409.64) 跌破 50日均线 (423.17)</li></ul></div>
+    <div class="stock-detail">
+        <h3>GOOGL 详细分析</h3>
+        <img src="images/GOOGL_analysis_plot.png" alt="GOOGL 分析图表">
+    <h4>警报信息</h4><ul><li class="alert-text">价格 (183.77) 跌破 5日均线 (185.43)</li><li class="alert-text">价格 (183.77) 跌破 10日均线 (187.92)</li><li class="alert-text">价格 (183.77) 跌破 20日均线 (190.50)</li><li class="alert-text">价格 (183.77) 跌破 50日均线 (188.84)</li></ul></div>
+</body>
+</html>

@@ -275,25 +275,13 @@ MIT License
 
 ### 3. HTML 报告示例
 
-```html
-<div class="stock-detail">
-    <h3>NVDA 详细分析</h3>
-    <div class="price-info">
-        当前价格：785.38 (+7.23, +0.93%)
-    </div>
-    <div class="technical-indicators">
-        <p>RSI (14): 71.25 - 超买状态</p>
-    </div>
-    <div class="alerts">
-        <h4>警报信息</h4>
-        <ul>
-            <li>RSI 进入超买区域 (>70)</li>
-            <li>价格突破 120 日均线</li>
-        </ul>
-    </div>
-    <img src="nvda_analysis_plot.png" alt="NVDA 分析图表">
-</div>
-```
+您可以在 [docs/examples/sample_report.html](docs/examples/sample_report.html) 中查看一个完整的分析报告示例。该示例包含了多支股票的技术分析结果，包括：
+
+- 股票价格走势图
+- EMA 技术指标
+- RSI 超买超卖信号
+- 均线交叉信号
+- 详细的技术分析数据
 
 ### 4. 警报消息示例
 
