@@ -9,6 +9,21 @@ stocks:
   - TSLA   # 特斯拉
   - SOFI   # SoFi
   - PLTR   # Palantir
+  - FUTU
+  - AMD
+  - TMDX
+  - COIN
+  - TSM
+  - SOXL
+  - MARA
+  - RBLX
+  - TWLO
+  - MSTR
+  - SNOW
+  - BA
+  - OXY
+  - RKLB
+
 
 # 分析设置
 analysis:
