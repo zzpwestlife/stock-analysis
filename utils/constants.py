@@ -10,3 +10,6 @@ class Colors:
     CYAN = '\033[96m'
     BOLD = '\033[1m'
     END = '\033[0m'
+
+# EMA periods for analysis
+EMA_PERIODS = [5, 50, 200]  # 短期、中期、长期趋势

@@ -4,7 +4,7 @@ import os
 import base64
 import re
 import matplotlib.pyplot as plt
-from .constants import Colors
+from .constants import Colors, EMA_PERIODS
 import pandas as pd
 from openpyxl.utils import get_column_letter
 
@@ -38,44 +38,36 @@ def save_analysis_plot(data, symbol, output_dir):
         
         # 绘制价格和均线
         ax1.plot(data_plot.index, data_plot['Close'], label='Price', color='black', linewidth=2, alpha=0.7)
-        colors = ['blue', 'green', 'red', 'purple', 'orange', 'brown', 'pink']
-        ema_periods = [5, 10, 20, 50, 60, 120, 200]
-        
-        for period, color in zip(ema_periods, colors):
+        colors = ['blue', 'orange', 'red']  # Colors for 5, 50, 200 day EMAs
+        for i, period in enumerate(EMA_PERIODS):
             column_name = f'EMA_{period}'
             ax1.plot(data_plot.index, data_plot[column_name], 
                     label=f'EMA {period}',
-                    color=color, linewidth=1.5, alpha=0.6)
+                    color=colors[i],
+                    alpha=0.7)
         
-        # 添加RSI子图
+        # Plot RSI
         ax2.plot(data_plot.index, data_plot['RSI'], label='RSI', color='gray', linewidth=1.5, alpha=0.7)
-        ax2.set_ylim(0, 100)
-        ax2.axhline(y=70, color='r', linestyle='--', alpha=0.3, label='RSI Overbought (70)')
-        ax2.axhline(y=30, color='g', linestyle='--', alpha=0.3, label='RSI Oversold (30)')
+        ax2.axhline(y=70, color='r', linestyle='--', alpha=0.5)
+        ax2.axhline(y=30, color='g', linestyle='--', alpha=0.5)
         
-        # 设置图表属性
-        plt.title(f'{symbol} Price and Technical Analysis', fontsize=14, pad=20)
-        ax1.set_xlabel('Date', fontsize=12)
-        ax1.set_ylabel('Price', fontsize=12)
-        ax2.set_ylabel('RSI', fontsize=12)
-        
-        # 旋转 x 轴日期标签以防重叠
-        plt.xticks(rotation=45)
-        
-        # 添加网格
+        # Set title and customize plot
+        latest_date = pd.to_datetime(data_plot.index[-1]).strftime("%Y-%m-%d")
+        ax1.set_title(f'Technical Analysis - {latest_date}', pad=20)
         ax1.grid(True, alpha=0.3)
+        ax2.grid(True, alpha=0.3)
         
-        # 获取所有图例并合并
-        lines1, labels1 = ax1.get_legend_handles_labels()
-        lines2, labels2 = ax2.get_legend_handles_labels()
+        # Format x-axis
+        ax2.xaxis.set_major_locator(plt.MaxNLocator(10))
+        plt.setp(ax2.xaxis.get_majorticklabels(), rotation=45, ha='right')
         
-        # 创建组合图例，放在图表下方
-        ax1.legend(lines1 + lines2, labels1 + labels2, 
-                  loc='upper center', bbox_to_anchor=(0.5, -0.1),
-                  ncol=5, fontsize=10)
+        # Set labels
+        ax1.set_ylabel('Price')
+        ax2.set_ylabel('RSI')
         
-        # 自动调整布局
-        plt.tight_layout()
+        # Add legends
+        ax1.legend(loc='upper left')
+        ax2.legend(loc='upper left')
         
         # 保存图表
         plt.savefig(os.path.join(output_dir, f'{symbol}_analysis_plot.png'), 
@@ -190,7 +182,7 @@ def save_to_excel(results, output_dir):
                         'Volume': '成交量',
                         'RSI': 'RSI'
                     }
-                    for period in [5, 10, 20, 50, 60, 120, 200]:
+                    for period in EMA_PERIODS:
                         rename_map[f'EMA_{period}'] = f'{period}日均线'
                     
                     data.rename(columns=rename_map, inplace=True)
