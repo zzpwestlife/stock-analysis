@@ -275,7 +275,7 @@ MIT License
 
 ### 3. HTML 报告示例
 
-您可以在 [docs/examples/sample_report.html](docs/examples/sample_report.html) 中查看一个完整的分析报告示例。该示例包含了多支股票的技术分析结果，包括：
+您可以在 [sample_report.html](https://htmlpreview.github.io/?https://github.com/zzpwestlife/stock-ema/blob/main/docs/examples/sample_report.html) 中查看一个完整的分析报告示例。该示例包含了多支股票的技术分析结果，包括：
 
 - 股票价格走势图
 - EMA 技术指标
