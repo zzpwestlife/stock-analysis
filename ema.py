@@ -33,8 +33,8 @@ def analyze_stock(symbol, start_date, end_date, output_dir):
         dict: 分析结果
     """
     try:
-        print(f"分析股票 {symbol}...")
-        
+        print(f"\n\n分析股票 {symbol}...")
+
         # 获取股票数据
         data = yf.download(symbol, start=start_date, end=end_date)
         if data.empty:
@@ -46,8 +46,14 @@ def analyze_stock(symbol, start_date, end_date, output_dir):
         # 计算技术指标
         data = calculate_indicators(data)
         
-        # 生成警报
-        alerts = generate_alerts(symbol, data)
+        # 生成警报（用于终端显示）
+        alerts = generate_alerts(symbol, data, use_colors=True)
+        # 打印带颜色的警报
+        for alert in alerts:
+            print(alert)
+            
+        # 生成不带颜色的警报（用于报告）
+        report_alerts = generate_alerts(symbol, data, use_colors=False)
         
         # 获取最新价格和价格变化
         latest_close = data['Close'].iloc[-1].item()
@@ -65,7 +71,7 @@ def analyze_stock(symbol, start_date, end_date, output_dir):
             'price_change': price_change,
             'price_change_pct': price_change_pct,
             'rsi': data['RSI'].iloc[-1].item(),
-            'alert_details': alerts,
+            'alert_details': report_alerts,  # 使用不带颜色的警报
             'error': None
         }
         

@@ -48,32 +48,37 @@ def detect_ema_cross(data, short_period=5, long_period=20):
         short_period (int): 短期EMA周期
         long_period (int): 长期EMA周期
     Returns:
-        str: 交叉信号类型
+        tuple: (交叉信号类型, 交叉日期), 如果没有交叉信号则返回 (None, None)
     """
     if len(data) < max(short_period, long_period) + 1:
-        return None
+        return None, None
         
     short_ema = data[f'EMA_{short_period}']
     long_ema = data[f'EMA_{long_period}']
     
     # 确保有足够的数据进行比较
     if len(short_ema) < 2 or len(long_ema) < 2:
-        return None
+        return None, None
+    
+    # 计算所有的交叉点
+    cross_dates = []
+    cross_types = []
+    
+    # 从最新的数据向前查找最近的交叉点
+    for i in range(len(data) - 1, 0, -1):
+        curr_short = short_ema.iloc[i]
+        curr_long = long_ema.iloc[i]
+        prev_short = short_ema.iloc[i-1]
+        prev_long = long_ema.iloc[i-1]
         
-    # 获取最近两个时间点的数据
-    current_short = short_ema.iloc[-1]
-    current_long = long_ema.iloc[-1]
-    prev_short = short_ema.iloc[-2]
-    prev_long = long_ema.iloc[-2]
+        # 检测金叉
+        if prev_short < prev_long and curr_short > curr_long:
+            return "golden_cross", data.index[i]
+        # 检测死叉
+        elif prev_short > prev_long and curr_short < curr_long:
+            return "death_cross", data.index[i]
     
-    # 检测金叉
-    if prev_short < prev_long and current_short > current_long:
-        return "golden_cross"
-    # 检测死叉
-    elif prev_short > prev_long and current_short < current_long:
-        return "death_cross"
-    
-    return None
+    return None, None
 
 def calculate_indicators(data):
     """计算技术指标

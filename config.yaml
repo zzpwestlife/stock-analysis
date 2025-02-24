@@ -3,26 +3,28 @@ stocks:
   - AAPL   # 苹果
   - MSFT   # 微软
   - GOOGL  # 谷歌
-  # - AMZN   # 亚马逊
-  # - META   # Meta
-  # - NVDA   # 英伟达
-  # - TSLA   # 特斯拉
-  # - SOFI   # SoFi
-  # - PLTR   # Palantir
-  # - FUTU
-  # - AMD
-  # - TMDX
-  # - COIN
-  # - TSM
-  # - SOXL
-  # - MARA
-  # - RBLX
-  # - TWLO
-  # - MSTR
-  # - SNOW
-  # - BA
-  # - OXY
-  # - RKLB
+  - AMZN   # 亚马逊
+  - META   # Meta
+  - NVDA   # 英伟达
+  - TSLA   # 特斯拉
+  - SOFI   # SoFi
+  - PLTR   # Palantir
+  - FUTU
+  - AMD
+  - TMDX
+  - COIN
+  - TSM
+  - SOXL
+  - MARA
+  - RBLX
+  - TWLO
+  - MSTR
+  - SNOW
+  - BA
+  - OXY
+  - RKLB
+  - RXRX
+  - DIS
 
 
 # 分析设置

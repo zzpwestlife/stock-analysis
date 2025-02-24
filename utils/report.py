@@ -244,6 +244,8 @@ def generate_html_report(results, output_dir):
                 .down { color: #f44336; }
                 .alert { color: #ff9800; }
                 .alert-text { color: #ff9800; font-weight: bold; }
+                .golden-cross { color: #4CAF50; font-weight: bold; }
+                .death-cross { color: #f44336; font-weight: bold; }
                 img { max-width: 100%; height: auto; margin: 10px 0; }
             </style>
         </head>
@@ -305,7 +307,25 @@ def generate_html_report(results, output_dir):
             if result.get('alert_details', []):
                 html += "<h4>警报信息</h4><ul>"
                 for alert in result['alert_details']:
-                    html += f'<li class="alert-text">{alert}</li>'
+                    # 提取日期并检查是否在最近10天内
+                    import re
+                    from datetime import datetime, timedelta
+                    date_match = re.search(r'发生于：(\d{4}-\d{2}-\d{2})', alert)
+                    is_recent = False
+                    if date_match:
+                        alert_date = datetime.strptime(date_match.group(1), '%Y-%m-%d')
+                        current_date = datetime.now()
+                        days_diff = (current_date - alert_date).days
+                        is_recent = days_diff <= 10
+                    
+                    # 根据警报类型和时间添加不同的样式
+                    if '金叉' in alert and is_recent:
+                        html += f'<li class="golden-cross">{alert}</li>'
+                    elif '死叉' in alert and is_recent:
+                        html += f'<li class="death-cross">{alert}</li>'
+                    else:
+                        # 如果不是最近的交叉信号，或者是其他类型的警报，使用普通样式
+                        html += f'<li>{alert}</li>'
                 html += "</ul>"
             
             html += "</div>"

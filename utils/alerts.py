@@ -3,13 +3,14 @@
 from .constants import Colors
 from .analysis import detect_ema_cross, get_rsi_signal
 
-def generate_alerts(symbol, data):
+def generate_alerts(symbol, data, use_colors=True):
     """
     生成股票警报
     
     Args:
         symbol (str): 股票代码
         data (pd.DataFrame): 股票数据
+        use_colors (bool): 是否使用颜色标记，默认为True
     
     Returns:
         list: 警报列表
@@ -26,7 +27,7 @@ def generate_alerts(symbol, data):
         
         # 检查价格与均线关系
         latest_close = data['Close'].iloc[-1].item()
-        price_alerts = get_price_alerts(data, latest_close)
+        price_alerts = get_price_alerts(data, latest_close, use_colors)
         alerts.extend(price_alerts)
         
         return alerts
@@ -35,13 +36,14 @@ def generate_alerts(symbol, data):
         print(f"{Colors.RED}Error generating alerts for {symbol}: {str(e)}{Colors.END}")
         return []
 
-def get_price_alerts(data, latest_close):
+def get_price_alerts(data, latest_close, use_colors=True):
     """
     根据价格和均线生成警报
     
     Args:
         data (pd.DataFrame): 股票数据
         latest_close (float): 最新收盘价
+        use_colors (bool): 是否使用颜色标记，默认为True
     
     Returns:
         list: 警报列表
@@ -54,26 +56,29 @@ def get_price_alerts(data, latest_close):
         if latest_close < ema:
             alerts.append(f"价格 ({latest_close:.2f}) 跌破 {period}日均线 ({ema:.2f})")
     
-    # 检查是否形成死叉（短期均线跌破长期均线）
-    for short_period, long_period in [(5, 10), (10, 20), (20, 50)]:
-        short_ema_prev = data[f'EMA_{short_period}'].iloc[-2].item()
-        short_ema_curr = data[f'EMA_{short_period}'].iloc[-1].item()
-        long_ema_prev = data[f'EMA_{long_period}'].iloc[-2].item()
-        long_ema_curr = data[f'EMA_{long_period}'].iloc[-1].item()
-        
-        # 检查最近两天的均线关系
-        if short_ema_prev > long_ema_prev and short_ema_curr < long_ema_curr:
-            alerts.append(f"{short_period}日均线跌破{long_period}日均线，形成死叉")
+    # 获取最新日期
+    latest_date = data.index[-1]
     
-    # 检查是否形成金叉（短期均线突破长期均线）
+    # 检查是否形成金叉或死叉
     for short_period, long_period in [(5, 10), (10, 20), (20, 50)]:
-        short_ema_prev = data[f'EMA_{short_period}'].iloc[-2].item()
-        short_ema_curr = data[f'EMA_{short_period}'].iloc[-1].item()
-        long_ema_prev = data[f'EMA_{long_period}'].iloc[-2].item()
-        long_ema_curr = data[f'EMA_{long_period}'].iloc[-1].item()
-        
-        # 检查最近两天的均线关系
-        if short_ema_prev < long_ema_prev and short_ema_curr > long_ema_curr:
-            alerts.append(f"{short_period}日均线突破{long_period}日均线，形成金叉")
+        cross_signal, cross_date = detect_ema_cross(data, short_period, long_period)
+        if cross_signal:
+            # 计算交叉日期与最新日期的天数差
+            days_diff = (latest_date - cross_date).days
+            
+            # 构建基本消息
+            if cross_signal == "golden_cross":
+                base_msg = f"{short_period}日均线突破{long_period}日均线，形成金叉，发生于：{cross_date.strftime('%Y-%m-%d')}"
+            else:  # death_cross
+                base_msg = f"{short_period}日均线跌破{long_period}日均线，形成死叉，发生于：{cross_date.strftime('%Y-%m-%d')}"
+            
+            # 只有最近 10 天的交叉才添加颜色
+            if use_colors and days_diff <= 10:
+                if cross_signal == "golden_cross":
+                    alerts.append(f"{Colors.GREEN}{base_msg}{Colors.END}")
+                else:  # death_cross
+                    alerts.append(f"{Colors.RED}{base_msg}{Colors.END}")
+            else:
+                alerts.append(base_msg)
     
     return alerts
