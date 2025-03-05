@@ -66,10 +66,10 @@ def detect_ema_cross(data, short_period=5, long_period=20):
     
     # 从最新的数据向前查找最近的交叉点
     for i in range(len(data) - 1, 0, -1):
-        curr_short = short_ema.iloc[i]
-        curr_long = long_ema.iloc[i]
-        prev_short = short_ema.iloc[i-1]
-        prev_long = long_ema.iloc[i-1]
+        curr_short = short_ema.iloc[i].item()
+        curr_long = long_ema.iloc[i].item()
+        prev_short = short_ema.iloc[i-1].item()
+        prev_long = long_ema.iloc[i-1].item()
         
         # 检测金叉
         if prev_short < prev_long and curr_short > curr_long:
@@ -77,6 +77,40 @@ def detect_ema_cross(data, short_period=5, long_period=20):
         # 检测死叉
         elif prev_short > prev_long and curr_short < curr_long:
             return "death_cross", data.index[i]
+    
+    return None, None
+
+def detect_price_ema_cross(data, period=5):
+    """检测价格与EMA交叉
+    Args:
+        data (pd.DataFrame): 股票数据
+        period (int): EMA周期
+    Returns:
+        tuple: (交叉信号类型, 交叉日期), 如果没有交叉信号则返回 (None, None)
+    """
+    if len(data) < period + 1:
+        return None, None
+        
+    close_prices = data['Close']
+    ema = data[f'EMA_{period}']
+    
+    # 确保有足够的数据进行比较
+    if len(close_prices) < 2 or len(ema) < 2:
+        return None, None
+    
+    # 从最新的数据向前查找最近的交叉点
+    for i in range(len(data) - 1, 0, -1):
+        curr_price = close_prices.iloc[i].item()
+        curr_ema = ema.iloc[i].item()
+        prev_price = close_prices.iloc[i-1].item()
+        prev_ema = ema.iloc[i-1].item()
+        
+        # 检测价格上穿EMA
+        if prev_price < prev_ema and curr_price > curr_ema:
+            return "price_up_cross", data.index[i]
+        # 检测价格下穿EMA
+        elif prev_price > prev_ema and curr_price < curr_ema:
+            return "price_down_cross", data.index[i]
     
     return None, None
 

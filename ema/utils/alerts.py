@@ -1,7 +1,7 @@
 """警报生成模块"""
 
 from .constants import Colors
-from .analysis import detect_ema_cross, get_rsi_signal
+from .analysis import detect_ema_cross, get_rsi_signal, detect_price_ema_cross
 
 def generate_alerts(symbol, data, use_colors=True):
     """
@@ -29,6 +29,10 @@ def generate_alerts(symbol, data, use_colors=True):
         latest_close = data['Close'].iloc[-1].item()
         price_alerts = get_price_alerts(data, latest_close, use_colors)
         alerts.extend(price_alerts)
+        
+        # 检查价格与EMA5/EMA10的交叉
+        price_ema_alerts = get_price_ema_cross_alerts(data, use_colors)
+        alerts.extend(price_ema_alerts)
         
         return alerts
         
@@ -62,7 +66,7 @@ def get_price_alerts(data, latest_close, use_colors=True):
     # 检查是否形成金叉或死叉
     for short_period, long_period in [(5, 10), (10, 20), (20, 50)]:
         cross_signal, cross_date = detect_ema_cross(data, short_period, long_period)
-        if cross_signal:
+        if cross_signal is not None and cross_date is not None:
             # 计算交叉日期与最新日期的天数差
             days_diff = (latest_date - cross_date).days
             
@@ -77,6 +81,44 @@ def get_price_alerts(data, latest_close, use_colors=True):
                 if cross_signal == "golden_cross":
                     alerts.append(f"{Colors.GREEN}{base_msg}{Colors.END}")
                 else:  # death_cross
+                    alerts.append(f"{Colors.RED}{base_msg}{Colors.END}")
+            else:
+                alerts.append(base_msg)
+    
+    return alerts
+
+def get_price_ema_cross_alerts(data, use_colors=True):
+    """
+    检测价格与EMA的交叉并生成警报
+    
+    Args:
+        data (pd.DataFrame): 股票数据
+        use_colors (bool): 是否使用颜色标记，默认为True
+    
+    Returns:
+        list: 警报列表
+    """
+    alerts = []
+    latest_date = data.index[-1]
+    
+    # 检查价格与EMA5和EMA10的交叉
+    for period in [5, 10]:
+        cross_signal, cross_date = detect_price_ema_cross(data, period)
+        if cross_signal is not None and cross_date is not None:
+            # 计算交叉日期与最新日期的天数差
+            days_diff = (latest_date - cross_date).days
+            
+            # 构建基本消息
+            if cross_signal == "price_up_cross":
+                base_msg = f"价格上穿{period}日均线，发生于：{cross_date.strftime('%Y-%m-%d')}"
+            else:  # price_down_cross
+                base_msg = f"价格下穿{period}日均线，发生于：{cross_date.strftime('%Y-%m-%d')}"
+            
+            # 只有最近 10 天的交叉才添加颜色
+            if use_colors and days_diff <= 10:
+                if cross_signal == "price_up_cross":
+                    alerts.append(f"{Colors.GREEN}{base_msg}{Colors.END}")
+                else:  # price_down_cross
                     alerts.append(f"{Colors.RED}{base_msg}{Colors.END}")
             else:
                 alerts.append(base_msg)

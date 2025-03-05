@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Options Portfolio Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            max-width: 1200px;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        button {
+            padding: 5px 10px;
+            margin: 5px;
+        }
+        .input-container {
+            margin-bottom: 10px;
+        }
+        label {
+            margin-right: 10px;
+        }
+        .total-price {
+            font-size: 1.2em;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Options Portfolio Calculator</h1>
+    <div class="input-container">
+        <label for="ticker">Ticker:</label>
+        <input type="text" id="ticker" value="SPY">
+        <label for="underlyingPrice">Underlying Price:</label>
+        <input type="number" id="underlyingPrice" step="0.01" value="595">
+        <label for="riskFreeRate">Risk-Free Rate (%):</label>
+        <input type="number" id="riskFreeRate" step="0.01" value="4.297">
+    </div>
+    <h2>Option Legs</h2>
+    <table id="legsTable">
+        <thead>
+            <tr>
+                <th>Direction</th>
+                <th>Type</th>
+                <th>Expiration Date</th>
+                <th>Strike Price</th>
+                <th>Implied Volatility (%)</th>
+                <th>Contracts</th>
+                <th>Leg Name</th>
+                <th>Price</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <button id="addLeg">Add Leg</button>
+    <div class="total-price">Total Portfolio Price: <span id="totalPrice">0.00</span></div>
+
+    <script>
+        // Cumulative Normal Distribution Function Approximation
+        function normCDF(x) {
+            const a1 = 0.254829592;
+            const a2 = -0.284496736;
+            const a3 = 1.421413741;
+            const a4 = -1.453152027;
+            const a5 = 1.061405429;
+            const p = 0.3275911;
+            const sign = x >= 0 ? 1 : -1;
+            x = Math.abs(x) / Math.sqrt(2.0);
+            const t = 1.0 / (1.0 + p * x);
+            const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+            return 0.5 * (1.0 + sign * y);
+        }
+
+        // Black-Scholes Option Pricing Model
+        function blackScholes(S, X, T, r, sigma, optionType) {
+            // Handle edge cases
+            if (T <= 0) return Math.max(0, optionType === 'C' ? S - X : X - S);
+            if (S <= 0 || X <= 0 || sigma <= 0) return 0;
+
+            const d1 = (Math.log(S / X) + (r + 0.5 * sigma * sigma) * T) / (sigma * Math.sqrt(T));
+            const d2 = d1 - sigma * Math.sqrt(T);
+
+            if (optionType === 'C') {
+                return S * normCDF(d1) - X * Math.exp(-r * T) * normCDF(d2);
+            } else {
+                return X * Math.exp(-r * T) * normCDF(-d2) - S * normCDF(-d1);
+            }
+        }
+
+        // Calculate business days between two dates
+        function getBusinessDays(startDate, endDate) {
+            let count = 0;
+            let curDate = new Date(startDate);
+            curDate.setHours(0, 0, 0, 0);
+            const endTime = endDate.getTime();
+
+            while (curDate.getTime() <= endTime) {
+                const dayOfWeek = curDate.getDay();
+                if (dayOfWeek !== 0 && dayOfWeek !== 6) count++;
+                curDate.setDate(curDate.getDate() + 1);
+            }
+            return count;
+        }
+
+        // Generate Leg Name
+        function generateLegName(ticker, expiration, strike, type) {
+            const year = expiration.getFullYear().toString().slice(-2);
+            const month = ('0' + (expiration.getMonth() + 1)).slice(-2);
+            const day = ('0' + expiration.getDate()).slice(-2);
+            const strikeStr = strike.toFixed(2);
+            return `${ticker} ${year}${month}${day} ${strikeStr}${type}`;
+        }
+
+        // Main Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const addLegButton = document.getElementById('addLeg');
+            const legsTableBody = document.getElementById('legsTable').querySelector('tbody');
+            const totalPriceSpan = document.getElementById('totalPrice');
+
+            // Set default values
+            const today = new Date();
+            let nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+            let fridayCount = 0;
+            while (fridayCount < 3) {
+                if (nextMonth.getDay() === 5) fridayCount++;
+                if (fridayCount < 3) nextMonth.setDate(nextMonth.getDate() + 1);
+            }
+            const defaultExpiry = nextMonth.toISOString().split('T')[0];
+
+            function addLeg() {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><select name="direction">
+                        <option value="BUY">BUY</option>
+                        <option value="SELL">SELL</option>
+                    </select></td>
+                    <td><select name="type">
+                        <option value="C">Call</option>
+                        <option value="P">Put</option>
+                    </select></td>
+                    <td><input type="date" name="expiration" value="${defaultExpiry}"></td>
+                    <td><input type="number" name="strike" step="0.01" min="0" value="600.00"></td>
+                    <td><input type="number" name="iv" step="0.01" min="0" value="15.384"></td>
+                    <td><input type="number" name="contracts" value="1" min="1" step="1"></td>
+                    <td><span class="legName"></span></td>
+                    <td><span class="price">0.00</span></td>
+                    <td><button class="removeLeg">Remove</button></td>
+                `;
+                legsTableBody.appendChild(row);
+                
+                // Add event listeners
+                row.querySelectorAll('input, select').forEach(input => {
+                    input.addEventListener('change', () => {
+                        if (input.name === 'contracts') {
+                            const contracts = parseInt(input.value) || 1;
+                            input.value = Math.max(1, contracts); // Ensure minimum of 1 contract
+                        }
+                        updateCalculations();
+                    });
+                });
+                
+                row.querySelector('.removeLeg').addEventListener('click', () => {
+                    row.remove();
+                    updateCalculations();
+                });
+                
+                updateCalculations();
+            }
+
+            function updateCalculations() {
+                const ticker = document.getElementById('ticker').value.trim();
+                const underlyingPrice = parseFloat(document.getElementById('underlyingPrice').value) || 0;
+                const riskFreeRate = (parseFloat(document.getElementById('riskFreeRate').value) || 0) / 100;
+                let totalPrice = 0;
+
+                const legs = legsTableBody.querySelectorAll('tr');
+                legs.forEach(leg => {
+                    const direction = leg.querySelector('select[name="direction"]').value;
+                    const type = leg.querySelector('select[name="type"]').value;
+                    const expirationInput = leg.querySelector('input[name="expiration"]').value;
+                    const strike = parseFloat(leg.querySelector('input[name="strike"]').value) || 0;
+                    const iv = (parseFloat(leg.querySelector('input[name="iv"]').value) || 0) / 100;
+                    const contracts = parseInt(leg.querySelector('input[name="contracts"]').value) || 1;
+
+                    let legName = '';
+                    let price = 0;
+
+                    if (expirationInput && strike > 0 && iv > 0) {
+                        const expiration = new Date(expirationInput);
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        
+                        // Calculate business days and convert to years
+                        const businessDays = getBusinessDays(today, expiration);
+                        const T = businessDays / 252; // Use 252 trading days per year
+                        
+                        legName = generateLegName(ticker, expiration, strike, type);
+                        
+                        try {
+                            price = blackScholes(underlyingPrice, strike, T, riskFreeRate, iv, type);
+                            // Round price to nearest cent
+                            price = Math.round(price * 100) / 100;
+                        } catch (e) {
+                            console.error('Error calculating option price:', e);
+                            price = 0;
+                        }
+                    }
+
+                    leg.querySelector('.legName').textContent = legName;
+                    leg.querySelector('.price').textContent = price.toFixed(2);
+
+                    // Calculate contribution to total price (per share)
+                    const directionMultiplier = direction === 'BUY' ? 1 : -1;
+                    const legContribution = directionMultiplier * price * contracts * 100; // 100 shares per contract
+                    totalPrice += legContribution;
+                });
+
+                // Update total price display
+                totalPriceSpan.textContent = totalPrice.toFixed(2);
+            }
+
+            // Add initial leg
+            addLeg();
+
+            // Add event listeners for global parameters
+            document.getElementById('ticker').addEventListener('change', updateCalculations);
+            document.getElementById('underlyingPrice').addEventListener('change', updateCalculations);
+            document.getElementById('riskFreeRate').addEventListener('change', updateCalculations);
+            
+            // Add leg button
+            addLegButton.addEventListener('click', addLeg);
+        });
+    </script>
+</body>
+</html>
