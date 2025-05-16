@@ -33,13 +33,13 @@ def save_analysis_plot(data, symbol, output_dir):
         colors = get_color_scheme()
         
         # 设置Matplotlib样式
-        plt.style.use('ggplot')
+        plt.style.use('seaborn-v0_8-whitegrid') # 使用更现代的样式
         
         # 导入字体管理器，确保字体正确加载
         import matplotlib.font_manager as fm
         
         # Set Matplotlib default font
-        plt.rcParams['font.sans-serif'] = ['DejaVu Sans']
+        plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Arial', 'Helvetica'] # 添加备选字体
         plt.rcParams['font.family'] = 'sans-serif'
         print('Using DejaVu Sans font for plots.')
         
@@ -47,109 +47,146 @@ def save_analysis_plot(data, symbol, output_dir):
         plt.rcParams.update({
             'axes.unicode_minus': False,  # 正确显示负号
             'font.size': 12,              # 统一字体大小
-            'axes.titlesize': 16,         # 标题字体大小
-            'axes.labelsize': 13          # 坐标轴标签大小
+            'axes.titlesize': 18,         # 标题字体大小 (增大)
+            'axes.labelsize': 14,         # 坐标轴标签大小 (增大)
+            'legend.fontsize': 11,        # 图例字体大小
+            'xtick.labelsize': 10,        # X轴刻度标签大小
+            'ytick.labelsize': 10,        # Y轴刻度标签大小
         })
         
-        plt.rcParams['axes.facecolor'] = colors['background']
-        plt.rcParams['figure.facecolor'] = colors['background']
-        plt.rcParams['axes.edgecolor'] = colors['border']
-        plt.rcParams['axes.labelcolor'] = colors['text_primary']
-        plt.rcParams['xtick.color'] = colors['text_secondary']
-        plt.rcParams['ytick.color'] = colors['text_secondary']
+        plt.rcParams['axes.facecolor'] = colors.get('background_light', '#FFFFFF') # 更亮的背景
+        plt.rcParams['figure.facecolor'] = colors.get('background_light', '#FFFFFF')
+        plt.rcParams['axes.edgecolor'] = colors.get('border_light', '#CCCCCC') # 更浅的边框
+        plt.rcParams['axes.labelcolor'] = colors.get('text_strong', '#333333') # 更强的文本颜色
+        plt.rcParams['xtick.color'] = colors.get('text_medium', '#555555') # 中等文本颜色
+        plt.rcParams['ytick.color'] = colors.get('text_medium', '#555555')
         
         # 创建图表
-        plt.figure(figsize=(15, 9))  # 增加图表大小
+        fig, ax1 = plt.subplots(figsize=(16, 8)) # 略微调整尺寸
         
-        # 创建主图和副图
-        ax1 = plt.gca()
+        # 创建副图 (RSI)
         ax2 = ax1.twinx()
         
         # 格式化日期
         data_plot = data.copy()
         data_plot.index = pd.to_datetime(data_plot.index).strftime('%Y-%m-%d')
         
-        # 绘制价格和均线
+        # 绘制价格
         ax1.plot(data_plot.index, data_plot['Close'], label='Price', 
-                color=colors['text_primary'], 
+                color=colors.get('primary', '#007ACC'), 
                 linewidth=2.5, 
-                alpha=0.8)
+                alpha=0.9)
         
-        # 使用配色方案中的图表颜色
-        chart_colors = colors['chart_colors']
+        # 定义要绘制的EMA周期和对应的颜色、样式
+        # 用户要求: Price/EMA5, EMA10, EMA20, 和 EMA200
+        emas_to_plot = {
+            'EMA_5': {'label': 'EMA 5', 'color': colors.get('chart_green', '#2ECC71'), 'style': '-', 'lw': 1.8},
+            'EMA_10': {'label': 'EMA 10', 'color': colors.get('chart_blue', '#3498DB'), 'style': '-', 'lw': 1.8},
+            'EMA_20': {'label': 'EMA 20', 'color': colors.get('chart_purple', '#9B59B6'), 'style': '-', 'lw': 1.8},
+            'EMA_200': {'label': 'EMA 200', 'color': colors.get('chart_red', '#E74C3C'), 'style': '--', 'lw': 2.0} # EMA200用虚线突出
+        }
         
-        for i, period in enumerate(EMA_PERIODS):
-            column_name = f'EMA_{period}'
-            ax1.plot(data_plot.index, data_plot[column_name], 
-                    label=f'EMA {period}',
-                    color=chart_colors[i % len(chart_colors)],
-                    linewidth=1.8,
-                    alpha=0.8)
+        chart_colors = colors.get('chart_colors', ['#2ECC71', '#3498DB', '#9B59B6', '#F1C40F', '#E67E22', '#E74C3C'])
+
+        # 绘制选定的EMA线
+        for i, (ema_col, props) in enumerate(emas_to_plot.items()):
+            if ema_col in data_plot.columns:
+                ax1.plot(data_plot.index, data_plot[ema_col], 
+                        label=props['label'],
+                        color=props['color'],
+                        linestyle=props['style'],
+                        linewidth=props['lw'],
+                        alpha=0.85)
+            else:
+                print(f"Warning: {ema_col} not found in data for {symbol}")
         
         # 绘制RSI
         ax2.plot(data_plot.index, data_plot['RSI'], 
                 label='RSI', 
-                color=colors['info'],
-                linewidth=1.5, 
-                alpha=0.75)
+                color=colors.get('info_dark', '#F39C12'), # 更鲜明的RSI颜色
+                linewidth=1.8, 
+                alpha=0.8)
         
         # RSI超买超卖线
-        ax2.axhline(y=70, color=colors['negative'], linestyle='--', alpha=0.4, linewidth=1.2)
-        ax2.axhline(y=30, color=colors['positive'], linestyle='--', alpha=0.4, linewidth=1.2)
-        ax2.fill_between(data_plot.index, 70, 100, color=colors['negative'], alpha=0.05)
-        ax2.fill_between(data_plot.index, 0, 30, color=colors['positive'], alpha=0.05)
+        ax2.axhline(y=70, color=colors.get('negative_light', '#E74C3C'), linestyle=':', alpha=0.6, linewidth=1.5) # 虚点线
+        ax2.axhline(y=30, color=colors.get('positive_light', '#2ECC71'), linestyle=':', alpha=0.6, linewidth=1.5) # 虚点线
+        ax2.fill_between(data_plot.index, 70, 100, color=colors.get('negative_light', '#E74C3C'), alpha=0.1) # 使用基础颜色和alpha控制透明度
+        ax2.fill_between(data_plot.index, 0, 30, color=colors.get('positive_light', '#2ECC71'), alpha=0.1) # 使用基础颜色和alpha控制透明度
         
         # 设置标题和自定义图表
         latest_date = pd.to_datetime(data_plot.index[-1]).strftime("%Y-%m-%d")
         ax1.set_title(f'{symbol} Technical Analysis - {latest_date}', 
-                     fontsize=16, 
-                     color=colors['text_primary'],
+                     fontsize=18, 
+                     color=colors.get('text_strong', '#333333'),
                      fontweight='bold',
-                     pad=20)
+                     pad=25) # 增加标题和图表的间距
         
-        # 网格设置
-        ax1.grid(True, alpha=0.15, color=colors['border'], linestyle='-')
+        # 网格设置 (更细的网格线)
+        ax1.grid(True, alpha=0.3, color=colors.get('border_light', '#DDDDDD'), linestyle='--')
         ax2.grid(False)  # 关闭RSI区域的网格，减少视觉干扰
         
         # 格式化x轴
-        ax2.xaxis.set_major_locator(plt.MaxNLocator(10))
-        plt.setp(ax2.xaxis.get_majorticklabels(), 
-                rotation=45, 
+        # 自动选择最佳的刻度数量和位置
+        ax1.xaxis.set_major_locator(plt.MaxNLocator(nbins=10, prune='both')) 
+        plt.setp(ax1.xaxis.get_majorticklabels(), 
+                rotation=30, # 调整旋转角度
                 ha='right', 
-                fontsize=9, 
-                color=colors['text_secondary'])
+                fontsize=10, 
+                color=colors.get('text_medium', '#555555'))
         
         # 设置标签
-        ax1.set_ylabel('Price', fontsize=12, color=colors['text_primary'])
-        ax2.set_ylabel('RSI', fontsize=12, color=colors['info'])
+        ax1.set_xlabel('Date', fontsize=14, color=colors.get('text_strong', '#333333'))
+        ax1.set_ylabel('Price / EMA', fontsize=14, color=colors.get('text_strong', '#333333'))
+        ax2.set_ylabel('RSI', fontsize=14, color=colors.get('info_dark', '#F39C12'))
         
         # 设置Y轴范围
         ax2.set_ylim(0, 100)
         
-        # 设置边框
-        for spine in ['top', 'right']:
-            ax1.spines[spine].set_visible(False)
+        # 移除顶部和右侧的 spines，使图表更简洁
+        ax1.spines['top'].set_visible(False)
+        ax1.spines['right'].set_visible(False)
+        ax2.spines['top'].set_visible(False)
+        # ax2.spines['right'].set_visible(False) # RSI Y轴保留
+
+        # 调整左侧和底部spines的颜色
+        ax1.spines['left'].set_color(colors.get('border_medium', '#AAAAAA'))
+        ax1.spines['bottom'].set_color(colors.get('border_medium', '#AAAAAA'))
+        ax2.spines['left'].set_color(colors.get('border_medium', '#AAAAAA')) # ax2的左spine其实是ax1的
+        ax2.spines['right'].set_color(colors.get('border_medium', '#AAAAAA'))
+        ax2.spines['bottom'].set_color(colors.get('border_medium', '#AAAAAA'))
         
-        # 添加图例
-        ax1.legend(loc='upper left', frameon=True, facecolor=colors['background_alt'], 
-                  edgecolor=colors['border'], framealpha=0.8)
-        ax2.legend(loc='upper right', frameon=True, facecolor=colors['background_alt'],
-                  edgecolor=colors['border'], framealpha=0.8)
-        
+        # 添加图例 (合并图例，放置在图表外部或最佳位置)
+        lines, labels = ax1.get_legend_handles_labels()
+        lines2, labels2 = ax2.get_legend_handles_labels()
+        # ax1.legend(lines + lines2, labels + labels2, loc='upper left', frameon=True, 
+        #           facecolor=colors.get('background_semi_transparent', 'rgba(255, 255, 255, 0.8)'), 
+        #           edgecolor=colors.get('border_light', '#DDDDDD'), framealpha=0.9, ncol=2) # 两列图例
+
+        # 将图例放置在图表下方，水平排列
+        fig.legend(lines + lines2, labels + labels2, loc='lower center', 
+                   bbox_to_anchor=(0.5, -0.05), # 调整位置使其在图表下方
+                   ncol=len(labels + labels2), # 根据图例数量自动调整列数
+                   frameon=False, # 无边框
+                   fontsize=11)
+
         # 添加水印
-        plt.figtext(0.02, 0.02, 'EMA Stock Analysis Tool', 
-                   fontsize=8, color=colors['text_tertiary'])
+        plt.figtext(0.98, 0.01, 'Stock Analysis by TraeAI', 
+                   fontsize=9, color=colors.get('text_light', '#999999'), ha='right') # 水印放置在右下角
+        
+        # 自动调整布局，为图例留出空间
+        plt.tight_layout(rect=[0, 0.05, 1, 0.95]) # rect=[left, bottom, right, top]
         
         # 保存图表
-        plt.tight_layout()  # 自动调整布局
-        plt.savefig(os.path.join(output_dir, f'{symbol}_analysis_plot.png'), 
+        plot_filename = os.path.join(output_dir, f'{symbol}_analysis_plot.png')
+        plt.savefig(plot_filename,
                    bbox_inches='tight', 
-                   dpi=120,
-                   facecolor=colors['background'])
-        plt.close()
+                   dpi=150, # 提高DPI以获得更清晰的图像
+                   facecolor=fig.get_facecolor())
+        plt.close(fig) # 关闭图表，释放内存
+        print(f"Modern plot saved to {plot_filename}")
         
     except Exception as e:
-        print(f"{Colors.RED}Error saving analysis plot for {symbol}: {str(e)}{Colors.END}")
+        print(f"{Colors.RED}Error saving modern analysis plot for {symbol}: {str(e)}{Colors.END}")
 
 def format_value(value):
     """格式化数值
