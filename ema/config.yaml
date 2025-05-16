@@ -1,30 +1,33 @@
 # 股票列表配置
 stocks:
-  - AAPL   # 苹果
+  - SPY
+  - QQQ
   - MSFT   # 微软
   - GOOGL  # 谷歌
-  - AMZN   # 亚马逊
-  - META   # Meta
   - NVDA   # 英伟达
   - TSLA   # 特斯拉
-  - SOFI   # SoFi
-  - PLTR   # Palantir
   - FUTU
-  - AMD
-  - TMDX
-  - COIN
+  - TIGR
   - TSM
-  - SOXL
-  - MARA
-  - RBLX
-  - TWLO
+  - MU
   - MSTR
-  - SNOW
-  - BA
-  - OXY
-  - RKLB
-  - RXRX
-  - DIS
+  # - OXY
+  # - DIS
+  # - PYPL
+  # - V
+  # - COST
+  # - AMZN   # 亚马逊
+  # - META   # Meta
+  # - AAPL   # 苹果
+  - KO
+  - NKE
+  - MCD
+  - FSLR
+  - DXYZ
+  - RBLX
+  - PLTR
+  - BABA
+  - PDD
 
 
 # 分析设置

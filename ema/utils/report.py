@@ -19,14 +19,47 @@ def remove_ansi_colors(text):
     return ansi_escape.sub('', text)
 
 def save_analysis_plot(data, symbol, output_dir):
-    """保存分析图表
+    """保存分析图表，采用现代简约的设计风格
     Args:
         data (pd.DataFrame): 股票数据
         symbol (str): 股票代码
         output_dir (str): 输出目录
     """
     try:
-        plt.figure(figsize=(15, 8))  # 增加图表大小
+        # 导入样式模块
+        from .styles import get_color_scheme
+        
+        # 获取配色方案
+        colors = get_color_scheme()
+        
+        # 设置Matplotlib样式
+        plt.style.use('ggplot')
+        
+        # 导入字体管理器，确保字体正确加载
+        import matplotlib.font_manager as fm
+        
+        # Set Matplotlib default font
+        plt.rcParams['font.sans-serif'] = ['DejaVu Sans']
+        plt.rcParams['font.family'] = 'sans-serif'
+        print('Using DejaVu Sans font for plots.')
+        
+        # 统一字体和符号配置
+        plt.rcParams.update({
+            'axes.unicode_minus': False,  # 正确显示负号
+            'font.size': 12,              # 统一字体大小
+            'axes.titlesize': 16,         # 标题字体大小
+            'axes.labelsize': 13          # 坐标轴标签大小
+        })
+        
+        plt.rcParams['axes.facecolor'] = colors['background']
+        plt.rcParams['figure.facecolor'] = colors['background']
+        plt.rcParams['axes.edgecolor'] = colors['border']
+        plt.rcParams['axes.labelcolor'] = colors['text_primary']
+        plt.rcParams['xtick.color'] = colors['text_secondary']
+        plt.rcParams['ytick.color'] = colors['text_secondary']
+        
+        # 创建图表
+        plt.figure(figsize=(15, 9))  # 增加图表大小
         
         # 创建主图和副图
         ax1 = plt.gca()
@@ -37,41 +70,82 @@ def save_analysis_plot(data, symbol, output_dir):
         data_plot.index = pd.to_datetime(data_plot.index).strftime('%Y-%m-%d')
         
         # 绘制价格和均线
-        ax1.plot(data_plot.index, data_plot['Close'], label='Price', color='black', linewidth=2, alpha=0.7)
-        colors = ['blue', 'orange', 'red']  # Colors for 5, 50, 200 day EMAs
+        ax1.plot(data_plot.index, data_plot['Close'], label='Price', 
+                color=colors['text_primary'], 
+                linewidth=2.5, 
+                alpha=0.8)
+        
+        # 使用配色方案中的图表颜色
+        chart_colors = colors['chart_colors']
+        
         for i, period in enumerate(EMA_PERIODS):
             column_name = f'EMA_{period}'
             ax1.plot(data_plot.index, data_plot[column_name], 
                     label=f'EMA {period}',
-                    color=colors[i],
-                    alpha=0.7)
+                    color=chart_colors[i % len(chart_colors)],
+                    linewidth=1.8,
+                    alpha=0.8)
         
-        # Plot RSI
-        ax2.plot(data_plot.index, data_plot['RSI'], label='RSI', color='gray', linewidth=1.5, alpha=0.7)
-        ax2.axhline(y=70, color='r', linestyle='--', alpha=0.5)
-        ax2.axhline(y=30, color='g', linestyle='--', alpha=0.5)
+        # 绘制RSI
+        ax2.plot(data_plot.index, data_plot['RSI'], 
+                label='RSI', 
+                color=colors['info'],
+                linewidth=1.5, 
+                alpha=0.75)
         
-        # Set title and customize plot
+        # RSI超买超卖线
+        ax2.axhline(y=70, color=colors['negative'], linestyle='--', alpha=0.4, linewidth=1.2)
+        ax2.axhline(y=30, color=colors['positive'], linestyle='--', alpha=0.4, linewidth=1.2)
+        ax2.fill_between(data_plot.index, 70, 100, color=colors['negative'], alpha=0.05)
+        ax2.fill_between(data_plot.index, 0, 30, color=colors['positive'], alpha=0.05)
+        
+        # 设置标题和自定义图表
         latest_date = pd.to_datetime(data_plot.index[-1]).strftime("%Y-%m-%d")
-        ax1.set_title(f'Technical Analysis - {latest_date}', pad=20)
-        ax1.grid(True, alpha=0.3)
-        ax2.grid(True, alpha=0.3)
+        ax1.set_title(f'{symbol} Technical Analysis - {latest_date}', 
+                     fontsize=16, 
+                     color=colors['text_primary'],
+                     fontweight='bold',
+                     pad=20)
         
-        # Format x-axis
+        # 网格设置
+        ax1.grid(True, alpha=0.15, color=colors['border'], linestyle='-')
+        ax2.grid(False)  # 关闭RSI区域的网格，减少视觉干扰
+        
+        # 格式化x轴
         ax2.xaxis.set_major_locator(plt.MaxNLocator(10))
-        plt.setp(ax2.xaxis.get_majorticklabels(), rotation=45, ha='right')
+        plt.setp(ax2.xaxis.get_majorticklabels(), 
+                rotation=45, 
+                ha='right', 
+                fontsize=9, 
+                color=colors['text_secondary'])
         
-        # Set labels
-        ax1.set_ylabel('Price')
-        ax2.set_ylabel('RSI')
+        # 设置标签
+        ax1.set_ylabel('Price', fontsize=12, color=colors['text_primary'])
+        ax2.set_ylabel('RSI', fontsize=12, color=colors['info'])
         
-        # Add legends
-        ax1.legend(loc='upper left')
-        ax2.legend(loc='upper left')
+        # 设置Y轴范围
+        ax2.set_ylim(0, 100)
+        
+        # 设置边框
+        for spine in ['top', 'right']:
+            ax1.spines[spine].set_visible(False)
+        
+        # 添加图例
+        ax1.legend(loc='upper left', frameon=True, facecolor=colors['background_alt'], 
+                  edgecolor=colors['border'], framealpha=0.8)
+        ax2.legend(loc='upper right', frameon=True, facecolor=colors['background_alt'],
+                  edgecolor=colors['border'], framealpha=0.8)
+        
+        # 添加水印
+        plt.figtext(0.02, 0.02, 'EMA Stock Analysis Tool', 
+                   fontsize=8, color=colors['text_tertiary'])
         
         # 保存图表
+        plt.tight_layout()  # 自动调整布局
         plt.savefig(os.path.join(output_dir, f'{symbol}_analysis_plot.png'), 
-                   bbox_inches='tight', dpi=100)
+                   bbox_inches='tight', 
+                   dpi=120,
+                   facecolor=colors['background'])
         plt.close()
         
     except Exception as e:
@@ -121,7 +195,11 @@ def save_to_excel(results, output_dir):
                 # 格式化数字列为两位小数
                 float_columns = ['当前价格', '价格变化', '价格变化率(%)', 'RSI']
                 for col in float_columns:
-                    overview_df[col] = pd.to_numeric(overview_df[col], errors='ignore')
+                    try:
+                        overview_df[col] = pd.to_numeric(overview_df[col])
+                    except Exception:
+                        # 跳过无法转换的列
+                        pass
                 
                 overview_df.to_excel(writer, sheet_name='概览', float_format='%.2f')
                 
@@ -230,37 +308,48 @@ def generate_html_report(results, output_dir):
         # 保存Excel文件
         save_to_excel(results, output_dir)
         
+        # 导入样式模块
+        from .styles import get_css_styles
+        
+        # 获取当前日期
+        from datetime import datetime
+        current_date = datetime.now().strftime("%Y年%m月%d日")
+        
         # HTML头部
-        html = """
-        <html>
+        html = f"""
+        <!DOCTYPE html>
+        <html lang="zh-CN">
         <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>股票分析报告</title>
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
             <style>
-                body { font-family: Arial, sans-serif; margin: 20px; }
-                table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
-                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                th { background-color: #f2f2f2; }
-                .up { color: #4CAF50; }
-                .down { color: #f44336; }
-                .alert { color: #ff9800; }
-                .alert-text { color: #ff9800; font-weight: bold; }
-                .golden-cross { color: #4CAF50; font-weight: bold; }
-                .death-cross { color: #f44336; font-weight: bold; }
-                img { max-width: 100%; height: auto; margin: 10px 0; }
+                {get_css_styles()}
             </style>
         </head>
         <body>
-            <h1>股票分析报告</h1>
-            <h2>概览</h2>
-            <p>详细数据已保存到 <a href="stock_analysis.xlsx">stock_analysis.xlsx</a></p>
-            <table>
-                <tr>
-                    <th>股票代码</th>
-                    <th>当前价格</th>
-                    <th>价格变化</th>
-                    <th>RSI</th>
-                    <th>警报数量</th>
-                </tr>
+            <h1>股票分析报告 <span style="font-weight: 400; font-size: 1.2rem; color: #8A919E; margin-left: 12px;">{current_date}</span></h1>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2 style="margin: 0;">市场概览</h2>
+                </div>
+                <div class="card-body">
+                    <p>详细数据已保存到 <a href="stock_analysis.xlsx">stock_analysis.xlsx</a></p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>股票代码</th>
+                                <th>当前价格</th>
+                                <th>价格变化</th>
+                                <th>RSI</th>
+                                <th>警报数量</th>
+                            </tr>
+                        </thead>
+                        <tbody>
         """
         
         # 添加概览表格数据
@@ -269,27 +358,43 @@ def generate_html_report(results, output_dir):
                 html += f"""
                 <tr>
                     <td>{result['symbol']}</td>
-                    <td colspan="4" style="color: red;">Error: {result['error']}</td>
+                    <td colspan="4" style="color: #D82C0D;">Error: {result['error']}</td>
                 </tr>
                 """
                 continue
                 
             price_change = float(format_value(result['price_change']))
             price_change_class = 'up' if price_change > 0 else 'down'
+            rsi_value = float(format_value(result['rsi']))
+            rsi_class = ""
+            if rsi_value >= 70:
+                rsi_class = "down"  # 超买
+            elif rsi_value <= 30:
+                rsi_class = "up"    # 超卖
+            
+            alert_count = len(result.get('alert_details', []))
             
             html += f"""
             <tr>
-                <td>{result['symbol']}</td>
+                <td><strong>{result['symbol']}</strong></td>
                 <td>{format_value(result['price'])}</td>
-                <td class="{price_change_class}">{format_value(result['price_change'])} ({format_value(result['price_change_pct'])}%)</td>
-                <td>{format_value(result['rsi'])}</td>
-                <td class="{'alert' if len(result.get('alert_details', [])) > 0 else ''}">{len(result.get('alert_details', []))}</td>
+                <td class="{price_change_class}">{format_value(result['price_change'])} ({format_value(result['price_change_pct'])} %)</td>
+                <td class="{rsi_class}">{format_value(result['rsi'])}</td>
+                <td>{alert_count} {f'<span class="alert">{"警报" if alert_count > 0 else ""}</span>' if alert_count > 0 else ""}</td>
             </tr>
             """
         
         html += """
-            </table>
-            <h2>详细分析</h2>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2 style="margin: 0;">详细分析</h2>
+                </div>
+            </div>
         """
         
         # 添加每个股票的详细分析
@@ -297,15 +402,53 @@ def generate_html_report(results, output_dir):
             if result.get('error'):
                 continue
                 
+            # 获取主要指标
+            price = format_value(result['price'])
+            price_change = format_value(result['price_change'])
+            price_change_pct = format_value(result['price_change_pct'])
+            rsi = format_value(result['rsi'])
+            change_class = 'up' if float(price_change) > 0 else 'down'
+            
             html += f"""
-            <div class="stock-detail">
-                <h3>{result['symbol']} 详细分析</h3>
-                <img src="{result['symbol']}_analysis_plot.png" alt="{result['symbol']} 分析图表">
+            <div class="card stock-detail">
+                <div class="card-header">
+                    <h3 style="margin: 0;">{result['symbol']} 详细分析</h3>
+                </div>
+                <div class="card-body">
+                    <!-- 关键指标部分 -->
+                    <div class="metrics-container">
+                        <div class="metric-card">
+                            <div class="metric-name">价格</div>
+                            <div class="metric-value">{price}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">变化</div>
+                            <div class="metric-value {change_class}">{price_change}</div>
+                            <div class="metric-change {change_class}">({price_change_pct} %)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">RSI</div>
+                            <div class="metric-value">{rsi}</div>
+                            <div class="metric-change">{"超买" if float(rsi) >= 70 else "超卖" if float(rsi) <= 30 else "正常"}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">警报</div>
+                            <div class="metric-value">{len(result.get('alert_details', []))}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析图表 -->
+                    <img src="{result['symbol']}_analysis_plot.png" alt="{result['symbol']} 分析图表">
             """
             
             # 添加警报信息
             if result.get('alert_details', []):
-                html += "<h4>警报信息</h4><ul>"
+                html += """<div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <h4 style="margin: 0;">警报信息</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul>"""
                 for alert in result['alert_details']:
                     # 提取日期并检查是否在最近10天内
                     import re
@@ -318,20 +461,40 @@ def generate_html_report(results, output_dir):
                         days_diff = (current_date - alert_date).days
                         is_recent = days_diff <= 10
                     
+                    # 清除ANSI颜色代码
+                    clean_alert = remove_ansi_colors(alert)
+                    
+                    # 替换常见的中英文混排情况，添加空格
+                    import re
+                    # 在英文字母/数字和中文之间添加空格
+                    clean_alert = re.sub(r'([a-zA-Z0-9])([\u4e00-\u9fff])', r'\1 \2', clean_alert)
+                    clean_alert = re.sub(r'([\u4e00-\u9fff])([a-zA-Z0-9])', r'\1 \2', clean_alert)
+                    # 确保数字与百分号之间有空格
+                    clean_alert = re.sub(r'([0-9])%', r'\1 %', clean_alert)
+                    
                     # 根据警报类型和时间添加不同的样式
-                    if '金叉' in alert and is_recent:
-                        html += f'<li class="golden-cross">{alert}</li>'
-                    elif '死叉' in alert and is_recent:
-                        html += f'<li class="death-cross">{alert}</li>'
+                    if '金叉' in clean_alert or '上穿' in clean_alert or '买入' in clean_alert or '看涨' in clean_alert:
+                        html += f'<li class="golden-cross">{clean_alert}</li>'
+                    elif '死叉' in clean_alert or '下穿' in clean_alert or '卖出' in clean_alert or '看跌' in clean_alert:
+                        html += f'<li class="death-cross">{clean_alert}</li>'
+                    elif 'RSI 超买' in clean_alert or 'RSI超买' in clean_alert:
+                        html += f'<li class="death-cross">{clean_alert}</li>'
+                    elif 'RSI 超卖' in clean_alert or 'RSI超卖' in clean_alert:
+                        html += f'<li class="golden-cross">{clean_alert}</li>'
                     else:
-                        # 如果不是最近的交叉信号，或者是其他类型的警报，使用普通样式
-                        html += f'<li>{alert}</li>'
-                html += "</ul>"
+                        # 如果不是交叉信号，使用普通样式
+                        html += f'<li>{clean_alert}</li>'
+                html += """</ul>
+                    </div>
+                </div>"""
             
-            html += "</div>"
+            html += "</div>\n</div>"
         
         # HTML尾部
         html += """
+            <footer style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #E4E7EC; text-align: center; color: #8A919E; font-size: 0.9rem;">
+                <p>EMA 股票分析工具 © 版权所有</p>
+            </footer>
         </body>
         </html>
         """

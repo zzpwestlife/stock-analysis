@@ -114,6 +114,102 @@ def detect_price_ema_cross(data, period=5):
     
     return None, None
 
+def calculate_macd(data, fast_period=12, slow_period=26, signal_period=9):
+    """计算MACD指标
+    Args:
+        data (pd.DataFrame): 股票数据
+        fast_period (int): 快线周期
+        slow_period (int): 慢线周期
+        signal_period (int): 信号线周期
+    Returns:
+        tuple: (MACD线, 信号线, MACD柱状图)
+    """
+    try:
+        # 计算快线和慢线的EMA
+        fast_ema = data['Close'].ewm(span=fast_period, adjust=False).mean()
+        slow_ema = data['Close'].ewm(span=slow_period, adjust=False).mean()
+        
+        # 计算MACD线 (DIF)
+        macd_line = fast_ema - slow_ema
+        
+        # 计算信号线 (DEA)
+        signal_line = macd_line.ewm(span=signal_period, adjust=False).mean()
+        
+        # 计算MACD柱状图
+        macd_hist = macd_line - signal_line
+        
+        return macd_line, signal_line, macd_hist
+    except Exception as e:
+        print(f"{Colors.RED}Error calculating MACD: {str(e)}{Colors.END}")
+        return pd.Series(index=data.index), pd.Series(index=data.index), pd.Series(index=data.index)
+
+def detect_macd_signals(data):
+    """检测MACD信号
+    Args:
+        data (pd.DataFrame): 股票数据
+    Returns:
+        dict: MACD信号字典，包含信号类型和对应的日期
+    """
+    signals = {
+        'cross_signal': None,
+        'cross_date': None,
+        'zero_cross': None,
+        'zero_date': None,
+        'divergence': None,
+        'divergence_date': None,
+        'histogram_trend': None,
+        'histogram_date': None
+    }
+    
+    try:
+        # 获取最新的MACD值和日期
+        latest_date = data.index[-1]
+        latest_macd = data['MACD_line'].iloc[-1]
+        prev_macd = data['MACD_line'].iloc[-2]
+        latest_signal = data['MACD_signal'].iloc[-1]
+        prev_signal = data['MACD_signal'].iloc[-2]
+        latest_hist = data['MACD_hist'].iloc[-1]
+        prev_hist = data['MACD_hist'].iloc[-2]
+        
+        # 检测MACD线与信号线的交叉
+        if prev_macd.item() < prev_signal.item() and latest_macd.item() > latest_signal.item():
+            signals['cross_signal'] = '金叉（买入）'
+            signals['cross_date'] = latest_date
+        elif prev_macd.item() > prev_signal.item() and latest_macd.item() < latest_signal.item():
+            signals['cross_signal'] = '死叉（卖出）'
+            signals['cross_date'] = latest_date
+            
+        # 检测MACD线与零线的交叉
+        if prev_macd.item() < 0 and latest_macd.item() > 0:
+            signals['zero_cross'] = '上穿零线（看涨）'
+            signals['zero_date'] = latest_date
+        elif prev_macd.item() > 0 and latest_macd.item() < 0:
+            signals['zero_cross'] = '下穿零线（看跌）'
+            signals['zero_date'] = latest_date
+            
+        # 检测背离（简单版本）
+        price_trend = data['Close'].iloc[-20:].diff().mean()
+        macd_trend = data['MACD_line'].iloc[-20:].diff().mean()
+        if price_trend.item() > 0 and macd_trend.item() < 0:
+            signals['divergence'] = '顶背离（潜在卖出）'
+            signals['divergence_date'] = latest_date
+        elif price_trend.item() < 0 and macd_trend.item() > 0:
+            signals['divergence'] = '底背离（潜在买入）'
+            signals['divergence_date'] = latest_date
+            
+        # 检测MACD柱状图趋势
+        if latest_hist.item() > prev_hist.item():
+            signals['histogram_trend'] = '柱状图增加（动能增强）'
+            signals['histogram_date'] = latest_date
+        else:
+            signals['histogram_trend'] = '柱状图减少（动能减弱）'
+            signals['histogram_date'] = latest_date
+            
+        return signals
+    except Exception as e:
+        print(f"{Colors.RED}Error detecting MACD signals: {str(e)}{Colors.END}")
+        return signals
+
 def calculate_indicators(data):
     """计算技术指标
     Args:
@@ -128,6 +224,12 @@ def calculate_indicators(data):
         
         # 计算RSI
         data['RSI'] = calculate_rsi(data)
+        
+        # 计算MACD
+        macd_line, signal_line, macd_hist = calculate_macd(data)
+        data['MACD_line'] = macd_line
+        data['MACD_signal'] = signal_line
+        data['MACD_hist'] = macd_hist
         
         return data
     except Exception as e:
