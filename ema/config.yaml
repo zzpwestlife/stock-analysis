@@ -11,45 +11,45 @@ stocks:
 
   - SPY
   - QQQ
-  # - MSFT   # 微软
-  # - GOOGL  # 谷歌
-  # - NVDA   # 英伟达
-  # - TSLA   # 特斯拉
-  # - FUTU
-  # - TIGR
-  # - TSM
-  # - MU
-  # - MSTR
-  # - OXY
-  # - DIS
-  # - PYPL
-  # - V
-  # - COST
-  # - AMZN   # 亚马逊
-  # - META   # Meta
-  # - AAPL   # 苹果
-  # - KO
-  # - NKE
-  # - MCD
-  # - FSLR
-  # - DXYZ
-  # - RBLX
-  # - PLTR
-  # - BABA
-  # - PDD
+  - MSFT   # 微软
+  - GOOGL  # 谷歌
+  - NVDA   # 英伟达
+  - TSLA   # 特斯拉
+  - FUTU
+  - TIGR
+  - TSM
+  - MU
+  - MSTR
+  - OXY
+  - DIS
+  - PYPL
+  - V
+  - COST
+  - AMZN   # 亚马逊
+  - META   # Meta
+  - AAPL   # 苹果
+  - KO
+  - NKE
+  - MCD
+  - FSLR
+  - DXYZ
+  - RBLX
+  - PLTR
+  - BABA
+  - PDD
 
 
 # 分析设置
 analysis:
   # 回溯时间（天）
   lookback_days: 365
-  
+
   # RSI 设置
   rsi:
     period: 14
     oversold_threshold: 25
     overbought_threshold: 75
-  
+
   # EMA 周期设置
   ema_periods:
     short_term: [5, 10, 20]
@@ -62,7 +62,7 @@ output:
   plot:
     figure_size: [15, 8]
     dpi: 300
-    
+
   # 文件名格式
   filename_patterns:
     full_analysis: "{symbol}_full_analysis.csv"
