@@ -35,9 +35,12 @@ def analyze_stock(symbol, start_date, end_date, output_dir):
     try:
         print(f"\n\n分析股票 {symbol}...")
 
-        # 获取股票数据
-        data = yf.download(symbol, start=start_date, end=end_date)
-        if data.empty:
+        # 使用DataFetcher获取股票数据
+        from utils.data_fetcher import DataFetcher
+        fetcher = DataFetcher()
+        data = fetcher.fetch_data(symbol, start_date, end_date)
+        
+        if data is None:
             return {
                 'symbol': symbol,
                 'error': '无法获取股票数据'

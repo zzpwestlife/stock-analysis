@@ -1,13 +1,13 @@
 # 股票列表配置
 stocks:
-  - ^HSI     # 恒生指数
-  - 3032.HK # 恒生科技指数 ETF
-  - 9988.HK
-  - 0700.HK
-  - 3690.HK
-  - 0005.HK
-  - 0992.HK
-  - 9992.HK
+  # - ^HSI     # 恒生指数
+  # - 3032.HK # 恒生科技指数 ETF
+  # - 9988.HK
+  # - 0700.HK
+  # - 3690.HK
+  # - 0005.HK
+  # - 0992.HK
+  # - 9992.HK
 
   - SPY
   - QQQ
@@ -15,28 +15,34 @@ stocks:
   - GOOGL  # 谷歌
   - NVDA   # 英伟达
   - TSLA   # 特斯拉
+  - UBER
+  - HSAI
+  - UNH
+  - CEP
+  - BMA
+  - AEVA
   - FUTU
-  - TIGR
-  - TSM
-  - MU
-  - MSTR
-  - OXY
-  - DIS
-  - PYPL
-  - V
-  - COST
-  - AMZN   # 亚马逊
-  - META   # Meta
-  - AAPL   # 苹果
-  - KO
-  - NKE
-  - MCD
-  - FSLR
-  - DXYZ
-  - RBLX
-  - PLTR
-  - BABA
-  - PDD
+  # - TIGR
+  # - TSM
+  # - MU
+  # - MSTR
+  # - OXY
+  # - DIS
+  # - PYPL
+  # - V
+  # - COST
+  # - AMZN   # 亚马逊
+  # - META   # Meta
+  # - AAPL   # 苹果
+  # - KO
+  # - NKE
+  # - MCD
+  # - FSLR
+  # - DXYZ
+  # - RBLX
+  # - PLTR
+  # - BABA
+  # - PDD
 
 
 # 分析设置
