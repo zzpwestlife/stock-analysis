@@ -1,0 +1,964 @@
+
+        <!DOCTYPE html>
+        <html lang="zh-CN">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>股票分析报告</title>
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+            <style>
+                
+    /* 全局样式 */
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
+        font-size: 15px;
+        line-height: 1.6;
+        color: #202124;
+        background-color: #F7F8FB;
+        margin: 0;
+        padding: 40px;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    /* 标题样式 */
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'SF Pro Display', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
+        font-weight: 600;
+        margin-top: 1.5em;
+        margin-bottom: 0.75em;
+        letter-spacing: -0.01em;
+    }
+    
+    h1 {
+        font-size: 2.5rem;
+        color: #5E6AD2;
+        border-bottom: 1px solid #E4E7EC;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.5rem;
+        font-weight: 700;
+    }
+    
+    h2 {
+        font-size: 2rem;
+        color: #202124;
+        margin-top: 2.5rem;
+    }
+    
+    h3 {
+        font-size: 1.5rem;
+        color: #202124;
+    }
+    
+    h4 {
+        font-size: 1.25rem;
+        color: #202124;
+    }
+    
+    /* 卡片样式 */
+    .card {
+        background-color: #FFFFFF;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.05);
+        margin-bottom: 24px;
+        overflow: hidden;
+        transition: box-shadow 0.2s ease;
+    }
+    
+    .card:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05);
+    }
+    
+    .card-header {
+        padding: 20px 24px 16px;
+        border-bottom: 1px solid #E4E7EC;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .card-body {
+        padding: 24px;
+    }
+    
+    /* 表格样式 */
+    table {
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100%;
+        margin-bottom: 24px;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #FFFFFF;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    th {
+        background-color: #F7F8FB;
+        color: #202124;
+        font-weight: 600;
+        text-align: left;
+        padding: 16px 20px;
+        border-bottom: 1px solid #E4E7EC;
+        font-size: 0.9rem;
+    }
+    
+    td {
+        padding: 12px 20px;
+        border-bottom: 1px solid #E4E7EC;
+        color: #202124;
+        font-size: 0.95rem;
+    }
+    
+    tr:last-child td {
+        border-bottom: none;
+    }
+    
+    /* 状态样式 */
+    .up {
+        color: #40B66B;
+        font-weight: 500;
+    }
+    
+    .down {
+        color: #D82C0D;
+        font-weight: 500;
+    }
+    
+    .alert {
+        color: #F2A91B;
+        font-weight: 500;
+    }
+    
+    .golden-cross {
+        color: #40B66B;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+    }
+    
+    .golden-cross::before {
+        content: "";
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #40B66B;
+        margin-right: 10px;
+    }
+    
+    .death-cross {
+        color: #D82C0D;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+    }
+    
+    .death-cross::before {
+        content: "";
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #D82C0D;
+        margin-right: 10px;
+    }
+    
+    /* 图片样式 */
+    img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    /* 链接样式 */
+    a {
+        color: #5E6AD2;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+    
+    a:hover {
+        color: #4954B8;
+        text-decoration: underline;
+    }
+    
+    /* 警报列表样式 */
+    ul {
+        list-style-type: none;
+        padding-left: 0;
+    }
+    
+    li {
+        padding: 10px 16px;
+        border-left: 3px solid transparent;
+        margin-bottom: 8px;
+        background-color: #F7F8FB;
+        border-radius: 0 4px 4px 0;
+        transition: all 0.2s ease;
+    }
+    
+    li.golden-cross {
+        border-left-color: #40B66B;
+        background-color: rgba(64, 182, 107, 0.05);
+    }
+    
+    li.death-cross {
+        border-left-color: #D82C0D;
+        background-color: rgba(216, 44, 13, 0.05);
+    }
+    
+    /* 重要指标样式 */
+    .metrics-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        grid-gap: 16px;
+        margin-bottom: 24px;
+    }
+    
+    .metric-card {
+        background-color: #FFFFFF;
+        border-radius: 8px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    .metric-name {
+        font-size: 0.9rem;
+        color: #8A919E;
+        margin-bottom: 4px;
+    }
+    
+    .metric-value {
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: #202124;
+        line-height: 1.2;
+        margin-bottom: 4px;
+    }
+    
+    .metric-change {
+        font-size: 0.9rem;
+    }
+    
+    /* 响应式设计 */
+    @media screen and (max-width: 768px) {
+        body {
+            padding: 20px;
+        }
+        
+        .metrics-container {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        h1 {
+            font-size: 2rem;
+        }
+        
+        h2 {
+            font-size: 1.75rem;
+        }
+        
+        table {
+            display: block;
+            overflow-x: auto;
+        }
+    }
+    
+    @media screen and (max-width: 480px) {
+        .metrics-container {
+            grid-template-columns: 1fr;
+        }
+    }
+
+            </style>
+        </head>
+        <body>
+            <h1>股票分析报告 <span style="font-weight: 400; font-size: 1.2rem; color: #8A919E; margin-left: 12px;">2025年06月05日</span></h1>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2 style="margin: 0;">市场概览</h2>
+                </div>
+                <div class="card-body">
+                    <p>详细数据已保存到 <a href="stock_analysis.xlsx">stock_analysis.xlsx</a></p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>股票代码</th>
+                                <th>当前价格</th>
+                                <th>价格变化</th>
+                                <th>RSI</th>
+                                <th>警报数量</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        
+            <tr>
+                <td><strong>^HSI</strong></td>
+                <td>23654.03</td>
+                <td class="up">141.54 (0.60 %)</td>
+                <td class="">53.69</td>
+                <td>6 <span class="alert">警报</span></td>
+            </tr>
+            
+            <tr>
+                <td><strong>3032.HK</strong></td>
+                <td>5.16</td>
+                <td class="up">0.05 (1.08 %)</td>
+                <td class="">38.06</td>
+                <td>11 <span class="alert">警报</span></td>
+            </tr>
+            
+            <tr>
+                <td><strong>9988.HK</strong></td>
+                <td>114.60</td>
+                <td class="up">0.70 (0.61 %)</td>
+                <td class="up">27.59</td>
+                <td>11 <span class="alert">警报</span></td>
+            </tr>
+            
+            <tr>
+                <td><strong>0700.HK</strong></td>
+                <td>512.00</td>
+                <td class="up">7.00 (1.39 %)</td>
+                <td class="">47.57</td>
+                <td>6 <span class="alert">警报</span></td>
+            </tr>
+            
+            <tr>
+                <td><strong>3690.HK</strong></td>
+                <td>140.70</td>
+                <td class="up">4.10 (3.00 %)</td>
+                <td class="">56.45</td>
+                <td>8 <span class="alert">警报</span></td>
+            </tr>
+            
+            <tr>
+                <td><strong>0005.HK</strong></td>
+                <td>93.15</td>
+                <td class="up">1.00 (1.09 %)</td>
+                <td class="down">70.73</td>
+                <td>7 <span class="alert">警报</span></td>
+            </tr>
+            
+            <tr>
+                <td><strong>0992.HK</strong></td>
+                <td>8.91</td>
+                <td class="down">-0.03 (-0.34 %)</td>
+                <td class="">30.80</td>
+                <td>11 <span class="alert">警报</span></td>
+            </tr>
+            
+            <tr>
+                <td><strong>9992.HK</strong></td>
+                <td>246.00</td>
+                <td class="up">12.00 (5.13 %)</td>
+                <td class="down">74.70</td>
+                <td>7 <span class="alert">警报</span></td>
+            </tr>
+            
+            <tr>
+                <td><strong>1810.HK</strong></td>
+                <td>53.45</td>
+                <td class="up">0.25 (0.47 %)</td>
+                <td class="">63.87</td>
+                <td>6 <span class="alert">警报</span></td>
+            </tr>
+            
+            <tr>
+                <td><strong>2097.HK</strong></td>
+                <td>615.50</td>
+                <td class="up">29.50 (5.03 %)</td>
+                <td class="down">81.50</td>
+                <td>7 <span class="alert">警报</span></td>
+            </tr>
+            
+            <tr>
+                <td><strong>6181.HK</strong></td>
+                <td>994.00</td>
+                <td class="up">29.50 (3.06 %)</td>
+                <td class="down">87.59</td>
+                <td>6 <span class="alert">警报</span></td>
+            </tr>
+            
+            <tr>
+                <td><strong>1318.HK</strong></td>
+                <td>127.50</td>
+                <td class="up">12.90 (11.26 %)</td>
+                <td class="">67.69</td>
+                <td>6 <span class="alert">警报</span></td>
+            </tr>
+            
+            <tr>
+                <td><strong>9926.HK</strong></td>
+                <td>81.15</td>
+                <td class="up">0.45 (0.56 %)</td>
+                <td class="">49.81</td>
+                <td>8 <span class="alert">警报</span></td>
+            </tr>
+            
+            <tr>
+                <td><strong>9896.HK</strong></td>
+                <td>35.20</td>
+                <td class="up">1.55 (4.61 %)</td>
+                <td class="">38.74</td>
+                <td>10 <span class="alert">警报</span></td>
+            </tr>
+            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2 style="margin: 0;">详细分析</h2>
+                </div>
+            </div>
+        
+            <div class="card stock-detail">
+                <div class="card-header">
+                    <h3 style="margin: 0;">^HSI 详细分析</h3>
+                </div>
+                <div class="card-body">
+                    <!-- 关键指标部分 -->
+                    <div class="metrics-container">
+                        <div class="metric-card">
+                            <div class="metric-name">价格</div>
+                            <div class="metric-value">23654.03</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">变化</div>
+                            <div class="metric-value up">141.54</div>
+                            <div class="metric-change up">(0.60 %)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">RSI</div>
+                            <div class="metric-value">53.69</div>
+                            <div class="metric-change">正常</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">警报</div>
+                            <div class="metric-value">6</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析图表 -->
+                    <img src="^HSI_analysis_plot.png" alt="^HSI 分析图表">
+            <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <h4 style="margin: 0;">警报信息</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul><li class="golden-cross">5 日均线突破 10 日均线，形成金叉，发生于：2025-06-03</li><li class="golden-cross">10 日均线突破 20 日均线，形成金叉，发生于：2025-05-06</li><li class="golden-cross">20 日均线突破 50 日均线，形成金叉，发生于：2025-05-08</li><li class="golden-cross">价格上穿 5 日均线，发生于：2025-06-03</li><li class="golden-cross">价格上穿 10 日均线，发生于：2025-06-03</li><li>MACD 柱状图增加（动能增强），发生于：2025-06-04</li></ul>
+                    </div>
+                </div></div>
+</div>
+            <div class="card stock-detail">
+                <div class="card-header">
+                    <h3 style="margin: 0;">3032.HK 详细分析</h3>
+                </div>
+                <div class="card-body">
+                    <!-- 关键指标部分 -->
+                    <div class="metrics-container">
+                        <div class="metric-card">
+                            <div class="metric-name">价格</div>
+                            <div class="metric-value">5.16</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">变化</div>
+                            <div class="metric-value up">0.05</div>
+                            <div class="metric-change up">(1.08 %)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">RSI</div>
+                            <div class="metric-value">38.06</div>
+                            <div class="metric-change">正常</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">警报</div>
+                            <div class="metric-value">11</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析图表 -->
+                    <img src="3032.HK_analysis_plot.png" alt="3032.HK 分析图表">
+            <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <h4 style="margin: 0;">警报信息</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul><li>价格 (5.16) 跌破 10 日均线 (5.18)</li><li>价格 (5.16) 跌破 20 日均线 (5.18)</li><li>价格 (5.16) 跌破 50 日均线 (5.18)</li><li class="death-cross">5 日均线跌破 10 日均线，形成死叉，发生于：2025-05-26</li><li class="death-cross">10 日均线跌破 20 日均线，形成死叉，发生于：2025-06-02</li><li class="death-cross">20 日均线跌破 50 日均线，形成死叉，发生于：2025-06-02</li><li class="golden-cross">价格上穿 5 日均线，发生于：2025-06-03</li><li class="death-cross">价格下穿 10 日均线，发生于：2025-05-30</li><li class="death-cross">MACD 下穿零线（看跌），发生于：2025-06-03</li><li class="golden-cross">MACD 底背离（潜在买入），发生于：2025-06-03</li><li>MACD 柱状图增加（动能增强），发生于：2025-06-03</li></ul>
+                    </div>
+                </div></div>
+</div>
+            <div class="card stock-detail">
+                <div class="card-header">
+                    <h3 style="margin: 0;">9988.HK 详细分析</h3>
+                </div>
+                <div class="card-body">
+                    <!-- 关键指标部分 -->
+                    <div class="metrics-container">
+                        <div class="metric-card">
+                            <div class="metric-name">价格</div>
+                            <div class="metric-value">114.60</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">变化</div>
+                            <div class="metric-value up">0.70</div>
+                            <div class="metric-change up">(0.61 %)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">RSI</div>
+                            <div class="metric-value">27.59</div>
+                            <div class="metric-change">超卖</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">警报</div>
+                            <div class="metric-value">11</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析图表 -->
+                    <img src="9988.HK_analysis_plot.png" alt="9988.HK 分析图表">
+            <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <h4 style="margin: 0;">警报信息</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul><li class="golden-cross">RSI 超卖: 27.59</li><li>价格 (114.60) 跌破 5 日均线 (114.83)</li><li>价格 (114.60) 跌破 10 日均线 (116.34)</li><li>价格 (114.60) 跌破 20 日均线 (117.96)</li><li>价格 (114.60) 跌破 50 日均线 (118.36)</li><li class="death-cross">5 日均线跌破 10 日均线，形成死叉，发生于：2025-05-20</li><li class="death-cross">10 日均线跌破 20 日均线，形成死叉，发生于：2025-05-27</li><li class="death-cross">20 日均线跌破 50 日均线，形成死叉，发生于：2025-06-03</li><li class="death-cross">价格下穿 5 日均线，发生于：2025-05-30</li><li class="death-cross">价格下穿 10 日均线，发生于：2025-05-16</li><li>MACD 柱状图增加（动能增强），发生于：2025-06-04</li></ul>
+                    </div>
+                </div></div>
+</div>
+            <div class="card stock-detail">
+                <div class="card-header">
+                    <h3 style="margin: 0;">0700.HK 详细分析</h3>
+                </div>
+                <div class="card-body">
+                    <!-- 关键指标部分 -->
+                    <div class="metrics-container">
+                        <div class="metric-card">
+                            <div class="metric-name">价格</div>
+                            <div class="metric-value">512.00</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">变化</div>
+                            <div class="metric-value up">7.00</div>
+                            <div class="metric-change up">(1.39 %)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">RSI</div>
+                            <div class="metric-value">47.57</div>
+                            <div class="metric-change">正常</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">警报</div>
+                            <div class="metric-value">6</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析图表 -->
+                    <img src="0700.HK_analysis_plot.png" alt="0700.HK 分析图表">
+            <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <h4 style="margin: 0;">警报信息</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul><li class="death-cross">5 日均线跌破 10 日均线，形成死叉，发生于：2025-05-30</li><li class="golden-cross">10 日均线突破 20 日均线，形成金叉，发生于：2025-05-06</li><li class="golden-cross">20 日均线突破 50 日均线，形成金叉，发生于：2025-05-02</li><li class="golden-cross">价格上穿 5 日均线，发生于：2025-06-03</li><li class="golden-cross">价格上穿 10 日均线，发生于：2025-06-04</li><li>MACD 柱状图增加（动能增强），发生于：2025-06-04</li></ul>
+                    </div>
+                </div></div>
+</div>
+            <div class="card stock-detail">
+                <div class="card-header">
+                    <h3 style="margin: 0;">3690.HK 详细分析</h3>
+                </div>
+                <div class="card-body">
+                    <!-- 关键指标部分 -->
+                    <div class="metrics-container">
+                        <div class="metric-card">
+                            <div class="metric-name">价格</div>
+                            <div class="metric-value">140.70</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">变化</div>
+                            <div class="metric-value up">4.10</div>
+                            <div class="metric-change up">(3.00 %)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">RSI</div>
+                            <div class="metric-value">56.45</div>
+                            <div class="metric-change">正常</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">警报</div>
+                            <div class="metric-value">8</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析图表 -->
+                    <img src="3690.HK_analysis_plot.png" alt="3690.HK 分析图表">
+            <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <h4 style="margin: 0;">警报信息</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul><li>价格 (140.70) 跌破 50 日均线 (142.01)</li><li class="golden-cross">5 日均线突破 10 日均线，形成金叉，发生于：2025-05-29</li><li class="death-cross">10 日均线跌破 20 日均线，形成死叉，发生于：2025-03-25</li><li class="death-cross">20 日均线跌破 50 日均线，形成死叉，发生于：2025-04-07</li><li class="golden-cross">价格上穿 5 日均线，发生于：2025-06-03</li><li class="golden-cross">价格上穿 10 日均线，发生于：2025-05-29</li><li class="golden-cross">MACD 底背离（潜在买入），发生于：2025-06-04</li><li>MACD 柱状图增加（动能增强），发生于：2025-06-04</li></ul>
+                    </div>
+                </div></div>
+</div>
+            <div class="card stock-detail">
+                <div class="card-header">
+                    <h3 style="margin: 0;">0005.HK 详细分析</h3>
+                </div>
+                <div class="card-body">
+                    <!-- 关键指标部分 -->
+                    <div class="metrics-container">
+                        <div class="metric-card">
+                            <div class="metric-name">价格</div>
+                            <div class="metric-value">93.15</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">变化</div>
+                            <div class="metric-value up">1.00</div>
+                            <div class="metric-change up">(1.09 %)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">RSI</div>
+                            <div class="metric-value">70.73</div>
+                            <div class="metric-change">超买</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">警报</div>
+                            <div class="metric-value">7</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析图表 -->
+                    <img src="0005.HK_analysis_plot.png" alt="0005.HK 分析图表">
+            <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <h4 style="margin: 0;">警报信息</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul><li class="death-cross">RSI 超买: 70.73</li><li class="golden-cross">5 日均线突破 10 日均线，形成金叉，发生于：2025-04-22</li><li class="golden-cross">10 日均线突破 20 日均线，形成金叉，发生于：2025-04-28</li><li class="golden-cross">20 日均线突破 50 日均线，形成金叉，发生于：2025-04-29</li><li class="golden-cross">价格上穿 5 日均线，发生于：2025-06-04</li><li class="golden-cross">价格上穿 10 日均线，发生于：2025-04-16</li><li>MACD 柱状图增加（动能增强），发生于：2025-06-04</li></ul>
+                    </div>
+                </div></div>
+</div>
+            <div class="card stock-detail">
+                <div class="card-header">
+                    <h3 style="margin: 0;">0992.HK 详细分析</h3>
+                </div>
+                <div class="card-body">
+                    <!-- 关键指标部分 -->
+                    <div class="metrics-container">
+                        <div class="metric-card">
+                            <div class="metric-name">价格</div>
+                            <div class="metric-value">8.91</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">变化</div>
+                            <div class="metric-value down">-0.03</div>
+                            <div class="metric-change down">(-0.34 %)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">RSI</div>
+                            <div class="metric-value">30.80</div>
+                            <div class="metric-change">正常</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">警报</div>
+                            <div class="metric-value">11</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析图表 -->
+                    <img src="0992.HK_analysis_plot.png" alt="0992.HK 分析图表">
+            <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <h4 style="margin: 0;">警报信息</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul><li>价格 (8.91) 跌破 5 日均线 (9.03)</li><li>价格 (8.91) 跌破 10 日均线 (9.19)</li><li>价格 (8.91) 跌破 20 日均线 (9.31)</li><li>价格 (8.91) 跌破 50 日均线 (9.60)</li><li class="death-cross">5 日均线跌破 10 日均线，形成死叉，发生于：2025-05-26</li><li class="death-cross">10 日均线跌破 20 日均线，形成死叉，发生于：2025-05-30</li><li class="death-cross">20 日均线跌破 50 日均线，形成死叉，发生于：2025-04-03</li><li class="death-cross">价格下穿 5 日均线，发生于：2025-05-30</li><li class="death-cross">价格下穿 10 日均线，发生于：2025-05-22</li><li class="golden-cross">MACD 底背离（潜在买入），发生于：2025-06-04</li><li>MACD 柱状图减少（动能减弱），发生于：2025-06-04</li></ul>
+                    </div>
+                </div></div>
+</div>
+            <div class="card stock-detail">
+                <div class="card-header">
+                    <h3 style="margin: 0;">9992.HK 详细分析</h3>
+                </div>
+                <div class="card-body">
+                    <!-- 关键指标部分 -->
+                    <div class="metrics-container">
+                        <div class="metric-card">
+                            <div class="metric-name">价格</div>
+                            <div class="metric-value">246.00</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">变化</div>
+                            <div class="metric-value up">12.00</div>
+                            <div class="metric-change up">(5.13 %)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">RSI</div>
+                            <div class="metric-value">74.70</div>
+                            <div class="metric-change">超买</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">警报</div>
+                            <div class="metric-value">7</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析图表 -->
+                    <img src="9992.HK_analysis_plot.png" alt="9992.HK 分析图表">
+            <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <h4 style="margin: 0;">警报信息</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul><li class="death-cross">RSI 超买: 74.70</li><li class="golden-cross">5 日均线突破 10 日均线，形成金叉，发生于：2025-04-11</li><li class="golden-cross">10 日均线突破 20 日均线，形成金叉，发生于：2025-01-22</li><li class="golden-cross">20 日均线突破 50 日均线，形成金叉，发生于：2024-07-22</li><li class="golden-cross">价格上穿 5 日均线，发生于：2025-06-02</li><li class="golden-cross">价格上穿 10 日均线，发生于：2025-05-09</li><li>MACD 柱状图增加（动能增强），发生于：2025-06-04</li></ul>
+                    </div>
+                </div></div>
+</div>
+            <div class="card stock-detail">
+                <div class="card-header">
+                    <h3 style="margin: 0;">1810.HK 详细分析</h3>
+                </div>
+                <div class="card-body">
+                    <!-- 关键指标部分 -->
+                    <div class="metrics-container">
+                        <div class="metric-card">
+                            <div class="metric-name">价格</div>
+                            <div class="metric-value">53.45</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">变化</div>
+                            <div class="metric-value up">0.25</div>
+                            <div class="metric-change up">(0.47 %)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">RSI</div>
+                            <div class="metric-value">63.87</div>
+                            <div class="metric-change">正常</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">警报</div>
+                            <div class="metric-value">6</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析图表 -->
+                    <img src="1810.HK_analysis_plot.png" alt="1810.HK 分析图表">
+            <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <h4 style="margin: 0;">警报信息</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul><li class="golden-cross">5 日均线突破 10 日均线，形成金叉，发生于：2025-06-03</li><li class="golden-cross">10 日均线突破 20 日均线，形成金叉，发生于：2025-04-30</li><li class="golden-cross">20 日均线突破 50 日均线，形成金叉，发生于：2025-04-28</li><li class="golden-cross">价格上穿 5 日均线，发生于：2025-06-02</li><li class="golden-cross">价格上穿 10 日均线，发生于：2025-06-03</li><li>MACD 柱状图增加（动能增强），发生于：2025-06-04</li></ul>
+                    </div>
+                </div></div>
+</div>
+            <div class="card stock-detail">
+                <div class="card-header">
+                    <h3 style="margin: 0;">2097.HK 详细分析</h3>
+                </div>
+                <div class="card-body">
+                    <!-- 关键指标部分 -->
+                    <div class="metrics-container">
+                        <div class="metric-card">
+                            <div class="metric-name">价格</div>
+                            <div class="metric-value">615.50</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">变化</div>
+                            <div class="metric-value up">29.50</div>
+                            <div class="metric-change up">(5.03 %)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">RSI</div>
+                            <div class="metric-value">81.50</div>
+                            <div class="metric-change">超买</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">警报</div>
+                            <div class="metric-value">7</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析图表 -->
+                    <img src="2097.HK_analysis_plot.png" alt="2097.HK 分析图表">
+            <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <h4 style="margin: 0;">警报信息</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul><li class="death-cross">RSI 超买: 81.50</li><li class="golden-cross">5 日均线突破 10 日均线，形成金叉，发生于：2025-05-19</li><li class="golden-cross">10 日均线突破 20 日均线，形成金叉，发生于：2025-03-05</li><li class="golden-cross">20 日均线突破 50 日均线，形成金叉，发生于：2025-03-05</li><li class="golden-cross">价格上穿 5 日均线，发生于：2025-05-30</li><li class="golden-cross">价格上穿 10 日均线，发生于：2025-05-16</li><li>MACD 柱状图增加（动能增强），发生于：2025-06-04</li></ul>
+                    </div>
+                </div></div>
+</div>
+            <div class="card stock-detail">
+                <div class="card-header">
+                    <h3 style="margin: 0;">6181.HK 详细分析</h3>
+                </div>
+                <div class="card-body">
+                    <!-- 关键指标部分 -->
+                    <div class="metrics-container">
+                        <div class="metric-card">
+                            <div class="metric-name">价格</div>
+                            <div class="metric-value">994.00</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">变化</div>
+                            <div class="metric-value up">29.50</div>
+                            <div class="metric-change up">(3.06 %)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">RSI</div>
+                            <div class="metric-value">87.59</div>
+                            <div class="metric-change">超买</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">警报</div>
+                            <div class="metric-value">6</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析图表 -->
+                    <img src="6181.HK_analysis_plot.png" alt="6181.HK 分析图表">
+            <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <h4 style="margin: 0;">警报信息</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul><li class="death-cross">RSI 超买: 87.59</li><li class="golden-cross">5 日均线突破 10 日均线，形成金叉，发生于：2025-05-20</li><li class="golden-cross">10 日均线突破 20 日均线，形成金叉，发生于：2025-05-21</li><li class="golden-cross">价格上穿 5 日均线，发生于：2025-05-19</li><li class="golden-cross">价格上穿 10 日均线，发生于：2025-05-20</li><li>MACD 柱状图增加（动能增强），发生于：2025-06-04</li></ul>
+                    </div>
+                </div></div>
+</div>
+            <div class="card stock-detail">
+                <div class="card-header">
+                    <h3 style="margin: 0;">1318.HK 详细分析</h3>
+                </div>
+                <div class="card-body">
+                    <!-- 关键指标部分 -->
+                    <div class="metrics-container">
+                        <div class="metric-card">
+                            <div class="metric-name">价格</div>
+                            <div class="metric-value">127.50</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">变化</div>
+                            <div class="metric-value up">12.90</div>
+                            <div class="metric-change up">(11.26 %)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">RSI</div>
+                            <div class="metric-value">67.69</div>
+                            <div class="metric-change">正常</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">警报</div>
+                            <div class="metric-value">6</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析图表 -->
+                    <img src="1318.HK_analysis_plot.png" alt="1318.HK 分析图表">
+            <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <h4 style="margin: 0;">警报信息</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul><li class="golden-cross">5 日均线突破 10 日均线，形成金叉，发生于：2025-05-20</li><li class="golden-cross">10 日均线突破 20 日均线，形成金叉，发生于：2025-05-20</li><li class="golden-cross">20 日均线突破 50 日均线，形成金叉，发生于：2024-12-12</li><li class="golden-cross">价格上穿 5 日均线，发生于：2025-06-03</li><li class="golden-cross">价格上穿 10 日均线，发生于：2025-06-03</li><li>MACD 柱状图增加（动能增强），发生于：2025-06-04</li></ul>
+                    </div>
+                </div></div>
+</div>
+            <div class="card stock-detail">
+                <div class="card-header">
+                    <h3 style="margin: 0;">9926.HK 详细分析</h3>
+                </div>
+                <div class="card-body">
+                    <!-- 关键指标部分 -->
+                    <div class="metrics-container">
+                        <div class="metric-card">
+                            <div class="metric-name">价格</div>
+                            <div class="metric-value">81.15</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">变化</div>
+                            <div class="metric-value up">0.45</div>
+                            <div class="metric-change up">(0.56 %)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">RSI</div>
+                            <div class="metric-value">49.81</div>
+                            <div class="metric-change">正常</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">警报</div>
+                            <div class="metric-value">8</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析图表 -->
+                    <img src="9926.HK_analysis_plot.png" alt="9926.HK 分析图表">
+            <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <h4 style="margin: 0;">警报信息</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul><li>价格 (81.15) 跌破 10 日均线 (82.00)</li><li>价格 (81.15) 跌破 20 日均线 (82.73)</li><li class="death-cross">5 日均线跌破 10 日均线，形成死叉，发生于：2025-06-02</li><li class="death-cross">10 日均线跌破 20 日均线，形成死叉，发生于：2025-06-02</li><li class="golden-cross">20 日均线突破 50 日均线，形成金叉，发生于：2025-02-24</li><li class="golden-cross">价格上穿 5 日均线，发生于：2025-06-04</li><li class="death-cross">价格下穿 10 日均线，发生于：2025-05-30</li><li>MACD 柱状图增加（动能增强），发生于：2025-06-04</li></ul>
+                    </div>
+                </div></div>
+</div>
+            <div class="card stock-detail">
+                <div class="card-header">
+                    <h3 style="margin: 0;">9896.HK 详细分析</h3>
+                </div>
+                <div class="card-body">
+                    <!-- 关键指标部分 -->
+                    <div class="metrics-container">
+                        <div class="metric-card">
+                            <div class="metric-name">价格</div>
+                            <div class="metric-value">35.20</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">变化</div>
+                            <div class="metric-value up">1.55</div>
+                            <div class="metric-change up">(4.61 %)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">RSI</div>
+                            <div class="metric-value">38.74</div>
+                            <div class="metric-change">正常</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">警报</div>
+                            <div class="metric-value">10</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析图表 -->
+                    <img src="9896.HK_analysis_plot.png" alt="9896.HK 分析图表">
+            <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <h4 style="margin: 0;">警报信息</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul><li>价格 (35.20) 跌破 10 日均线 (35.48)</li><li>价格 (35.20) 跌破 20 日均线 (36.09)</li><li>价格 (35.20) 跌破 50 日均线 (36.64)</li><li class="death-cross">5 日均线跌破 10 日均线，形成死叉，发生于：2025-05-27</li><li class="death-cross">10 日均线跌破 20 日均线，形成死叉，发生于：2025-05-30</li><li class="death-cross">20 日均线跌破 50 日均线，形成死叉，发生于：2025-05-29</li><li class="golden-cross">价格上穿 5 日均线，发生于：2025-06-04</li><li class="death-cross">价格下穿 10 日均线，发生于：2025-05-26</li><li class="death-cross">MACD 顶背离（潜在卖出），发生于：2025-06-04</li><li>MACD 柱状图增加（动能增强），发生于：2025-06-04</li></ul>
+                    </div>
+                </div></div>
+</div>
+            <footer style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #E4E7EC; text-align: center; color: #8A919E; font-size: 0.9rem;">
+                <p>EMA 股票分析工具 © 版权所有</p>
+            </footer>
+        </body>
+        </html>
+        
