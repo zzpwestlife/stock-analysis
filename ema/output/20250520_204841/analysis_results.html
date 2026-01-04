@@ -1,0 +1,918 @@
+
+        <!DOCTYPE html>
+        <html lang="zh-CN">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>股票分析报告</title>
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+            <style>
+                
+    /* 全局样式 */
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
+        font-size: 15px;
+        line-height: 1.6;
+        color: #202124;
+        background-color: #F7F8FB;
+        margin: 0;
+        padding: 40px;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    /* 标题样式 */
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'SF Pro Display', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
+        font-weight: 600;
+        margin-top: 1.5em;
+        margin-bottom: 0.75em;
+        letter-spacing: -0.01em;
+    }
+    
+    h1 {
+        font-size: 2.5rem;
+        color: #5E6AD2;
+        border-bottom: 1px solid #E4E7EC;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.5rem;
+        font-weight: 700;
+    }
+    
+    h2 {
+        font-size: 2rem;
+        color: #202124;
+        margin-top: 2.5rem;
+    }
+    
+    h3 {
+        font-size: 1.5rem;
+        color: #202124;
+    }
+    
+    h4 {
+        font-size: 1.25rem;
+        color: #202124;
+    }
+    
+    /* 卡片样式 */
+    .card {
+        background-color: #FFFFFF;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.05);
+        margin-bottom: 24px;
+        overflow: hidden;
+        transition: box-shadow 0.2s ease;
+    }
+    
+    .card:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05);
+    }
+    
+    .card-header {
+        padding: 20px 24px 16px;
+        border-bottom: 1px solid #E4E7EC;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .card-body {
+        padding: 24px;
+    }
+    
+    /* 表格样式 */
+    table {
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100%;
+        margin-bottom: 24px;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #FFFFFF;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    th {
+        background-color: #F7F8FB;
+        color: #202124;
+        font-weight: 600;
+        text-align: left;
+        padding: 16px 20px;
+        border-bottom: 1px solid #E4E7EC;
+        font-size: 0.9rem;
+    }
+    
+    td {
+        padding: 12px 20px;
+        border-bottom: 1px solid #E4E7EC;
+        color: #202124;
+        font-size: 0.95rem;
+    }
+    
+    tr:last-child td {
+        border-bottom: none;
+    }
+    
+    /* 状态样式 */
+    .up {
+        color: #40B66B;
+        font-weight: 500;
+    }
+    
+    .down {
+        color: #D82C0D;
+        font-weight: 500;
+    }
+    
+    .alert {
+        color: #F2A91B;
+        font-weight: 500;
+    }
+    
+    .golden-cross {
+        color: #40B66B;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+    }
+    
+    .golden-cross::before {
+        content: "";
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #40B66B;
+        margin-right: 10px;
+    }
+    
+    .death-cross {
+        color: #D82C0D;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+    }
+    
+    .death-cross::before {
+        content: "";
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #D82C0D;
+        margin-right: 10px;
+    }
+    
+    /* 图片样式 */
+    img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    /* 链接样式 */
+    a {
+        color: #5E6AD2;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+    
+    a:hover {
+        color: #4954B8;
+        text-decoration: underline;
+    }
+    
+    /* 警报列表样式 */
+    ul {
+        list-style-type: none;
+        padding-left: 0;
+    }
+    
+    li {
+        padding: 10px 16px;
+        border-left: 3px solid transparent;
+        margin-bottom: 8px;
+        background-color: #F7F8FB;
+        border-radius: 0 4px 4px 0;
+        transition: all 0.2s ease;
+    }
+    
+    li.golden-cross {
+        border-left-color: #40B66B;
+        background-color: rgba(64, 182, 107, 0.05);
+    }
+    
+    li.death-cross {
+        border-left-color: #D82C0D;
+        background-color: rgba(216, 44, 13, 0.05);
+    }
+    
+    /* 重要指标样式 */
+    .metrics-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        grid-gap: 16px;
+        margin-bottom: 24px;
+    }
+    
+    .metric-card {
+        background-color: #FFFFFF;
+        border-radius: 8px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    .metric-name {
+        font-size: 0.9rem;
+        color: #8A919E;
+        margin-bottom: 4px;
+    }
+    
+    .metric-value {
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: #202124;
+        line-height: 1.2;
+        margin-bottom: 4px;
+    }
+    
+    .metric-change {
+        font-size: 0.9rem;
+    }
+    
+    /* 响应式设计 */
+    @media screen and (max-width: 768px) {
+        body {
+            padding: 20px;
+        }
+        
+        .metrics-container {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        h1 {
+            font-size: 2rem;
+        }
+        
+        h2 {
+            font-size: 1.75rem;
+        }
+        
+        table {
+            display: block;
+            overflow-x: auto;
+        }
+    }
+    
+    @media screen and (max-width: 480px) {
+        .metrics-container {
+            grid-template-columns: 1fr;
+        }
+    }
+
+            </style>
+        </head>
+        <body>
+            <h1>股票分析报告 <span style="font-weight: 400; font-size: 1.2rem; color: #8A919E; margin-left: 12px;">2025年05月20日</span></h1>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2 style="margin: 0;">市场概览</h2>
+                </div>
+                <div class="card-body">
+                    <p>详细数据已保存到 <a href="stock_analysis.xlsx">stock_analysis.xlsx</a></p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>股票代码</th>
+                                <th>当前价格</th>
+                                <th>价格变化</th>
+                                <th>RSI</th>
+                                <th>警报数量</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        
+            <tr>
+                <td><strong>SPY</strong></td>
+                <td>594.85</td>
+                <td class="up">0.65 (0.11 %)</td>
+                <td class="down">85.01</td>
+                <td>7 <span class="alert">警报</span></td>
+            </tr>
+            
+            <tr>
+                <td><strong>QQQ</strong></td>
+                <td>522.01</td>
+                <td class="up">0.50 (0.10 %)</td>
+                <td class="down">87.44</td>
+                <td>7 <span class="alert">警报</span></td>
+            </tr>
+            
+            <tr>
+                <td><strong>MSFT</strong></td>
+                <td>458.87</td>
+                <td class="up">4.60 (1.01 %)</td>
+                <td class="down">95.84</td>
+                <td>7 <span class="alert">警报</span></td>
+            </tr>
+            
+            <tr>
+                <td><strong>GOOGL</strong></td>
+                <td>166.54</td>
+                <td class="up">0.35 (0.21 %)</td>
+                <td class="">57.85</td>
+                <td>6 <span class="alert">警报</span></td>
+            </tr>
+            
+            <tr>
+                <td><strong>NVDA</strong></td>
+                <td>135.57</td>
+                <td class="up">0.17 (0.13 %)</td>
+                <td class="down">92.64</td>
+                <td>7 <span class="alert">警报</span></td>
+            </tr>
+            
+            <tr>
+                <td><strong>TSLA</strong></td>
+                <td>342.09</td>
+                <td class="down">-7.89 (-2.25 %)</td>
+                <td class="down">70.47</td>
+                <td>7 <span class="alert">警报</span></td>
+            </tr>
+            
+            <tr>
+                <td><strong>UBER</strong></td>
+                <td>92.46</td>
+                <td class="up">0.67 (0.73 %)</td>
+                <td class="down">77.79</td>
+                <td>7 <span class="alert">警报</span></td>
+            </tr>
+            
+            <tr>
+                <td><strong>HSAI</strong></td>
+                <td>19.46</td>
+                <td class="up">1.78 (10.07 %)</td>
+                <td class="">55.81</td>
+                <td>6 <span class="alert">警报</span></td>
+            </tr>
+            
+            <tr>
+                <td><strong>UNH</strong></td>
+                <td>315.89</td>
+                <td class="up">23.98 (8.21 %)</td>
+                <td class="up">25.52</td>
+                <td>10 <span class="alert">警报</span></td>
+            </tr>
+            
+            <tr>
+                <td><strong>CEP</strong></td>
+                <td>36.34</td>
+                <td class="up">3.46 (10.52 %)</td>
+                <td class="">53.02</td>
+                <td>6 <span class="alert">警报</span></td>
+            </tr>
+            
+            <tr>
+                <td><strong>BMA</strong></td>
+                <td>96.54</td>
+                <td class="up">4.07 (4.40 %)</td>
+                <td class="">61.66</td>
+                <td>6 <span class="alert">警报</span></td>
+            </tr>
+            
+            <tr>
+                <td><strong>AEVA</strong></td>
+                <td>15.58</td>
+                <td class="down">-2.86 (-15.51 %)</td>
+                <td class="down">78.13</td>
+                <td>7 <span class="alert">警报</span></td>
+            </tr>
+            
+            <tr>
+                <td><strong>FUTU</strong></td>
+                <td>109.60</td>
+                <td class="up">2.02 (1.88 %)</td>
+                <td class="down">74.74</td>
+                <td>7 <span class="alert">警报</span></td>
+            </tr>
+            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2 style="margin: 0;">详细分析</h2>
+                </div>
+            </div>
+        
+            <div class="card stock-detail">
+                <div class="card-header">
+                    <h3 style="margin: 0;">SPY 详细分析</h3>
+                </div>
+                <div class="card-body">
+                    <!-- 关键指标部分 -->
+                    <div class="metrics-container">
+                        <div class="metric-card">
+                            <div class="metric-name">价格</div>
+                            <div class="metric-value">594.85</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">变化</div>
+                            <div class="metric-value up">0.65</div>
+                            <div class="metric-change up">(0.11 %)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">RSI</div>
+                            <div class="metric-value">85.01</div>
+                            <div class="metric-change">超买</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">警报</div>
+                            <div class="metric-value">7</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析图表 -->
+                    <img src="SPY_analysis_plot.png" alt="SPY 分析图表">
+            <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <h4 style="margin: 0;">警报信息</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul><li class="death-cross">RSI 超买: 85.01</li><li class="golden-cross">5 日均线突破 10 日均线，形成金叉，发生于：2025-04-24</li><li class="golden-cross">10 日均线突破 20 日均线，形成金叉，发生于：2025-04-29</li><li class="golden-cross">20 日均线突破 50 日均线，形成金叉，发生于：2025-05-14</li><li class="golden-cross">价格上穿 5 日均线，发生于：2025-05-07</li><li class="golden-cross">价格上穿 10 日均线，发生于：2025-04-23</li><li>MACD 柱状图减少（动能减弱），发生于：2025-05-19</li></ul>
+                    </div>
+                </div></div>
+</div>
+            <div class="card stock-detail">
+                <div class="card-header">
+                    <h3 style="margin: 0;">QQQ 详细分析</h3>
+                </div>
+                <div class="card-body">
+                    <!-- 关键指标部分 -->
+                    <div class="metrics-container">
+                        <div class="metric-card">
+                            <div class="metric-name">价格</div>
+                            <div class="metric-value">522.01</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">变化</div>
+                            <div class="metric-value up">0.50</div>
+                            <div class="metric-change up">(0.10 %)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">RSI</div>
+                            <div class="metric-value">87.44</div>
+                            <div class="metric-change">超买</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">警报</div>
+                            <div class="metric-value">7</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析图表 -->
+                    <img src="QQQ_analysis_plot.png" alt="QQQ 分析图表">
+            <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <h4 style="margin: 0;">警报信息</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul><li class="death-cross">RSI 超买: 87.44</li><li class="golden-cross">5 日均线突破 10 日均线，形成金叉，发生于：2025-04-24</li><li class="golden-cross">10 日均线突破 20 日均线，形成金叉，发生于：2025-04-29</li><li class="golden-cross">20 日均线突破 50 日均线，形成金叉，发生于：2025-05-13</li><li class="golden-cross">价格上穿 5 日均线，发生于：2025-04-22</li><li class="golden-cross">价格上穿 10 日均线，发生于：2025-04-23</li><li>MACD 柱状图减少（动能减弱），发生于：2025-05-19</li></ul>
+                    </div>
+                </div></div>
+</div>
+            <div class="card stock-detail">
+                <div class="card-header">
+                    <h3 style="margin: 0;">MSFT 详细分析</h3>
+                </div>
+                <div class="card-body">
+                    <!-- 关键指标部分 -->
+                    <div class="metrics-container">
+                        <div class="metric-card">
+                            <div class="metric-name">价格</div>
+                            <div class="metric-value">458.87</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">变化</div>
+                            <div class="metric-value up">4.60</div>
+                            <div class="metric-change up">(1.01 %)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">RSI</div>
+                            <div class="metric-value">95.84</div>
+                            <div class="metric-change">超买</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">警报</div>
+                            <div class="metric-value">7</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析图表 -->
+                    <img src="MSFT_analysis_plot.png" alt="MSFT 分析图表">
+            <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <h4 style="margin: 0;">警报信息</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul><li class="death-cross">RSI 超买: 95.84</li><li class="golden-cross">5 日均线突破 10 日均线，形成金叉，发生于：2025-04-24</li><li class="golden-cross">10 日均线突破 20 日均线，形成金叉，发生于：2025-04-28</li><li class="golden-cross">20 日均线突破 50 日均线，形成金叉，发生于：2025-05-05</li><li class="golden-cross">价格上穿 5 日均线，发生于：2025-04-23</li><li class="golden-cross">价格上穿 10 日均线，发生于：2025-04-23</li><li>MACD 柱状图减少（动能减弱），发生于：2025-05-19</li></ul>
+                    </div>
+                </div></div>
+</div>
+            <div class="card stock-detail">
+                <div class="card-header">
+                    <h3 style="margin: 0;">GOOGL 详细分析</h3>
+                </div>
+                <div class="card-body">
+                    <!-- 关键指标部分 -->
+                    <div class="metrics-container">
+                        <div class="metric-card">
+                            <div class="metric-name">价格</div>
+                            <div class="metric-value">166.54</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">变化</div>
+                            <div class="metric-value up">0.35</div>
+                            <div class="metric-change up">(0.21 %)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">RSI</div>
+                            <div class="metric-value">57.85</div>
+                            <div class="metric-change">正常</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">警报</div>
+                            <div class="metric-value">6</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析图表 -->
+                    <img src="GOOGL_analysis_plot.png" alt="GOOGL 分析图表">
+            <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <h4 style="margin: 0;">警报信息</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul><li class="golden-cross">5 日均线突破 10 日均线，形成金叉，发生于：2025-05-14</li><li class="golden-cross">10 日均线突破 20 日均线，形成金叉，发生于：2025-05-14</li><li class="death-cross">20 日均线跌破 50 日均线，形成死叉，发生于：2025-02-24</li><li class="golden-cross">价格上穿 5 日均线，发生于：2025-05-12</li><li class="golden-cross">价格上穿 10 日均线，发生于：2025-05-12</li><li>MACD 柱状图增加（动能增强），发生于：2025-05-19</li></ul>
+                    </div>
+                </div></div>
+</div>
+            <div class="card stock-detail">
+                <div class="card-header">
+                    <h3 style="margin: 0;">NVDA 详细分析</h3>
+                </div>
+                <div class="card-body">
+                    <!-- 关键指标部分 -->
+                    <div class="metrics-container">
+                        <div class="metric-card">
+                            <div class="metric-name">价格</div>
+                            <div class="metric-value">135.57</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">变化</div>
+                            <div class="metric-value up">0.17</div>
+                            <div class="metric-change up">(0.13 %)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">RSI</div>
+                            <div class="metric-value">92.64</div>
+                            <div class="metric-change">超买</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">警报</div>
+                            <div class="metric-value">7</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析图表 -->
+                    <img src="NVDA_analysis_plot.png" alt="NVDA 分析图表">
+            <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <h4 style="margin: 0;">警报信息</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul><li class="death-cross">RSI 超买: 92.64</li><li class="golden-cross">5 日均线突破 10 日均线，形成金叉，发生于：2025-04-25</li><li class="golden-cross">10 日均线突破 20 日均线，形成金叉，发生于：2025-05-01</li><li class="golden-cross">20 日均线突破 50 日均线，形成金叉，发生于：2025-05-14</li><li class="golden-cross">价格上穿 5 日均线，发生于：2025-04-23</li><li class="golden-cross">价格上穿 10 日均线，发生于：2025-04-24</li><li>MACD 柱状图减少（动能减弱），发生于：2025-05-19</li></ul>
+                    </div>
+                </div></div>
+</div>
+            <div class="card stock-detail">
+                <div class="card-header">
+                    <h3 style="margin: 0;">TSLA 详细分析</h3>
+                </div>
+                <div class="card-body">
+                    <!-- 关键指标部分 -->
+                    <div class="metrics-container">
+                        <div class="metric-card">
+                            <div class="metric-name">价格</div>
+                            <div class="metric-value">342.09</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">变化</div>
+                            <div class="metric-value down">-7.89</div>
+                            <div class="metric-change down">(-2.25 %)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">RSI</div>
+                            <div class="metric-value">70.47</div>
+                            <div class="metric-change">超买</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">警报</div>
+                            <div class="metric-value">7</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析图表 -->
+                    <img src="TSLA_analysis_plot.png" alt="TSLA 分析图表">
+            <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <h4 style="margin: 0;">警报信息</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul><li class="death-cross">RSI 超买: 70.47</li><li class="golden-cross">5 日均线突破 10 日均线，形成金叉，发生于：2025-04-24</li><li class="golden-cross">10 日均线突破 20 日均线，形成金叉，发生于：2025-04-28</li><li class="golden-cross">20 日均线突破 50 日均线，形成金叉，发生于：2025-05-13</li><li class="golden-cross">价格上穿 5 日均线，发生于：2025-05-08</li><li class="golden-cross">价格上穿 10 日均线，发生于：2025-04-23</li><li>MACD 柱状图减少（动能减弱），发生于：2025-05-19</li></ul>
+                    </div>
+                </div></div>
+</div>
+            <div class="card stock-detail">
+                <div class="card-header">
+                    <h3 style="margin: 0;">UBER 详细分析</h3>
+                </div>
+                <div class="card-body">
+                    <!-- 关键指标部分 -->
+                    <div class="metrics-container">
+                        <div class="metric-card">
+                            <div class="metric-name">价格</div>
+                            <div class="metric-value">92.46</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">变化</div>
+                            <div class="metric-value up">0.67</div>
+                            <div class="metric-change up">(0.73 %)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">RSI</div>
+                            <div class="metric-value">77.79</div>
+                            <div class="metric-change">超买</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">警报</div>
+                            <div class="metric-value">7</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析图表 -->
+                    <img src="UBER_analysis_plot.png" alt="UBER 分析图表">
+            <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <h4 style="margin: 0;">警报信息</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul><li class="death-cross">RSI 超买: 77.79</li><li class="golden-cross">5 日均线突破 10 日均线，形成金叉，发生于：2025-04-14</li><li class="golden-cross">10 日均线突破 20 日均线，形成金叉，发生于：2025-04-17</li><li class="golden-cross">20 日均线突破 50 日均线，形成金叉，发生于：2025-04-17</li><li class="golden-cross">价格上穿 5 日均线，发生于：2025-05-12</li><li class="golden-cross">价格上穿 10 日均线，发生于：2025-04-09</li><li>MACD 柱状图减少（动能减弱），发生于：2025-05-19</li></ul>
+                    </div>
+                </div></div>
+</div>
+            <div class="card stock-detail">
+                <div class="card-header">
+                    <h3 style="margin: 0;">HSAI 详细分析</h3>
+                </div>
+                <div class="card-body">
+                    <!-- 关键指标部分 -->
+                    <div class="metrics-container">
+                        <div class="metric-card">
+                            <div class="metric-name">价格</div>
+                            <div class="metric-value">19.46</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">变化</div>
+                            <div class="metric-value up">1.78</div>
+                            <div class="metric-change up">(10.07 %)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">RSI</div>
+                            <div class="metric-value">55.81</div>
+                            <div class="metric-change">正常</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">警报</div>
+                            <div class="metric-value">6</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析图表 -->
+                    <img src="HSAI_analysis_plot.png" alt="HSAI 分析图表">
+            <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <h4 style="margin: 0;">警报信息</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul><li class="golden-cross">5 日均线突破 10 日均线，形成金叉，发生于：2025-04-24</li><li class="golden-cross">10 日均线突破 20 日均线，形成金叉，发生于：2025-04-29</li><li class="golden-cross">20 日均线突破 50 日均线，形成金叉，发生于：2025-05-05</li><li class="golden-cross">价格上穿 5 日均线，发生于：2025-05-16</li><li class="golden-cross">价格上穿 10 日均线，发生于：2025-05-12</li><li>MACD 柱状图增加（动能增强），发生于：2025-05-19</li></ul>
+                    </div>
+                </div></div>
+</div>
+            <div class="card stock-detail">
+                <div class="card-header">
+                    <h3 style="margin: 0;">UNH 详细分析</h3>
+                </div>
+                <div class="card-body">
+                    <!-- 关键指标部分 -->
+                    <div class="metrics-container">
+                        <div class="metric-card">
+                            <div class="metric-name">价格</div>
+                            <div class="metric-value">315.89</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">变化</div>
+                            <div class="metric-value up">23.98</div>
+                            <div class="metric-change up">(8.21 %)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">RSI</div>
+                            <div class="metric-value">25.52</div>
+                            <div class="metric-change">超卖</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">警报</div>
+                            <div class="metric-value">10</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析图表 -->
+                    <img src="UNH_analysis_plot.png" alt="UNH 分析图表">
+            <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <h4 style="margin: 0;">警报信息</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul><li class="golden-cross">RSI 超卖: 25.52</li><li>价格 (315.89) 跌破 10 日均线 (336.71)</li><li>价格 (315.89) 跌破 20 日均线 (377.43)</li><li>价格 (315.89) 跌破 50 日均线 (437.71)</li><li class="death-cross">5 日均线跌破 10 日均线，形成死叉，发生于：2025-04-17</li><li class="death-cross">10 日均线跌破 20 日均线，形成死叉，发生于：2025-04-21</li><li class="death-cross">20 日均线跌破 50 日均线，形成死叉，发生于：2025-04-23</li><li class="golden-cross">价格上穿 5 日均线，发生于：2025-05-19</li><li class="death-cross">价格下穿 10 日均线，发生于：2025-04-17</li><li>MACD 柱状图增加（动能增强），发生于：2025-05-19</li></ul>
+                    </div>
+                </div></div>
+</div>
+            <div class="card stock-detail">
+                <div class="card-header">
+                    <h3 style="margin: 0;">CEP 详细分析</h3>
+                </div>
+                <div class="card-body">
+                    <!-- 关键指标部分 -->
+                    <div class="metrics-container">
+                        <div class="metric-card">
+                            <div class="metric-name">价格</div>
+                            <div class="metric-value">36.34</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">变化</div>
+                            <div class="metric-value up">3.46</div>
+                            <div class="metric-change up">(10.52 %)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">RSI</div>
+                            <div class="metric-value">53.02</div>
+                            <div class="metric-change">正常</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">警报</div>
+                            <div class="metric-value">6</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析图表 -->
+                    <img src="CEP_analysis_plot.png" alt="CEP 分析图表">
+            <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <h4 style="margin: 0;">警报信息</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul><li class="golden-cross">5 日均线突破 10 日均线，形成金叉，发生于：2025-05-15</li><li class="golden-cross">10 日均线突破 20 日均线，形成金叉，发生于：2025-03-19</li><li class="golden-cross">20 日均线突破 50 日均线，形成金叉，发生于：2025-03-18</li><li class="golden-cross">价格上穿 5 日均线，发生于：2025-05-15</li><li class="golden-cross">价格上穿 10 日均线，发生于：2025-05-15</li><li>MACD 柱状图增加（动能增强），发生于：2025-05-19</li></ul>
+                    </div>
+                </div></div>
+</div>
+            <div class="card stock-detail">
+                <div class="card-header">
+                    <h3 style="margin: 0;">BMA 详细分析</h3>
+                </div>
+                <div class="card-body">
+                    <!-- 关键指标部分 -->
+                    <div class="metrics-container">
+                        <div class="metric-card">
+                            <div class="metric-name">价格</div>
+                            <div class="metric-value">96.54</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">变化</div>
+                            <div class="metric-value up">4.07</div>
+                            <div class="metric-change up">(4.40 %)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">RSI</div>
+                            <div class="metric-value">61.66</div>
+                            <div class="metric-change">正常</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">警报</div>
+                            <div class="metric-value">6</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析图表 -->
+                    <img src="BMA_analysis_plot.png" alt="BMA 分析图表">
+            <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <h4 style="margin: 0;">警报信息</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul><li class="golden-cross">5 日均线突破 10 日均线，形成金叉，发生于：2025-05-12</li><li class="golden-cross">10 日均线突破 20 日均线，形成金叉，发生于：2025-04-15</li><li class="golden-cross">20 日均线突破 50 日均线，形成金叉，发生于：2025-04-25</li><li class="golden-cross">价格上穿 5 日均线，发生于：2025-05-06</li><li class="golden-cross">价格上穿 10 日均线，发生于：2025-05-08</li><li>MACD 柱状图增加（动能增强），发生于：2025-05-19</li></ul>
+                    </div>
+                </div></div>
+</div>
+            <div class="card stock-detail">
+                <div class="card-header">
+                    <h3 style="margin: 0;">AEVA 详细分析</h3>
+                </div>
+                <div class="card-body">
+                    <!-- 关键指标部分 -->
+                    <div class="metrics-container">
+                        <div class="metric-card">
+                            <div class="metric-name">价格</div>
+                            <div class="metric-value">15.58</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">变化</div>
+                            <div class="metric-value down">-2.86</div>
+                            <div class="metric-change down">(-15.51 %)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">RSI</div>
+                            <div class="metric-value">78.13</div>
+                            <div class="metric-change">超买</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">警报</div>
+                            <div class="metric-value">7</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析图表 -->
+                    <img src="AEVA_analysis_plot.png" alt="AEVA 分析图表">
+            <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <h4 style="margin: 0;">警报信息</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul><li class="death-cross">RSI 超买: 78.13</li><li class="golden-cross">5 日均线突破 10 日均线，形成金叉，发生于：2025-04-24</li><li class="golden-cross">10 日均线突破 20 日均线，形成金叉，发生于：2025-03-24</li><li class="golden-cross">20 日均线突破 50 日均线，形成金叉，发生于：2025-03-26</li><li class="golden-cross">价格上穿 5 日均线，发生于：2025-05-01</li><li class="golden-cross">价格上穿 10 日均线，发生于：2025-04-24</li><li>MACD 柱状图减少（动能减弱），发生于：2025-05-19</li></ul>
+                    </div>
+                </div></div>
+</div>
+            <div class="card stock-detail">
+                <div class="card-header">
+                    <h3 style="margin: 0;">FUTU 详细分析</h3>
+                </div>
+                <div class="card-body">
+                    <!-- 关键指标部分 -->
+                    <div class="metrics-container">
+                        <div class="metric-card">
+                            <div class="metric-name">价格</div>
+                            <div class="metric-value">109.60</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">变化</div>
+                            <div class="metric-value up">2.02</div>
+                            <div class="metric-change up">(1.88 %)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">RSI</div>
+                            <div class="metric-value">74.74</div>
+                            <div class="metric-change">超买</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-name">警报</div>
+                            <div class="metric-value">7</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析图表 -->
+                    <img src="FUTU_analysis_plot.png" alt="FUTU 分析图表">
+            <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <h4 style="margin: 0;">警报信息</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul><li class="death-cross">RSI 超买: 74.74</li><li class="golden-cross">5 日均线突破 10 日均线，形成金叉，发生于：2025-04-24</li><li class="golden-cross">10 日均线突破 20 日均线，形成金叉，发生于：2025-05-02</li><li class="golden-cross">20 日均线突破 50 日均线，形成金叉，发生于：2025-05-12</li><li class="golden-cross">价格上穿 5 日均线，发生于：2025-05-19</li><li class="golden-cross">价格上穿 10 日均线，发生于：2025-04-22</li><li>MACD 柱状图减少（动能减弱），发生于：2025-05-19</li></ul>
+                    </div>
+                </div></div>
+</div>
+            <footer style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #E4E7EC; text-align: center; color: #8A919E; font-size: 0.9rem;">
+                <p>EMA 股票分析工具 © 版权所有</p>
+            </footer>
+        </body>
+        </html>
+        

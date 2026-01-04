@@ -1,0 +1,360 @@
+
+        <!DOCTYPE html>
+        <html lang="zh-CN">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>股票分析报告</title>
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+            <style>
+                
+    /* 全局样式 */
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
+        font-size: 15px;
+        line-height: 1.6;
+        color: #202124;
+        background-color: #F7F8FB;
+        margin: 0;
+        padding: 40px;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    /* 标题样式 */
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'SF Pro Display', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
+        font-weight: 600;
+        margin-top: 1.5em;
+        margin-bottom: 0.75em;
+        letter-spacing: -0.01em;
+    }
+    
+    h1 {
+        font-size: 2.5rem;
+        color: #5E6AD2;
+        border-bottom: 1px solid #E4E7EC;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.5rem;
+        font-weight: 700;
+    }
+    
+    h2 {
+        font-size: 2rem;
+        color: #202124;
+        margin-top: 2.5rem;
+    }
+    
+    h3 {
+        font-size: 1.5rem;
+        color: #202124;
+    }
+    
+    h4 {
+        font-size: 1.25rem;
+        color: #202124;
+    }
+    
+    /* 卡片样式 */
+    .card {
+        background-color: #FFFFFF;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.05);
+        margin-bottom: 24px;
+        overflow: hidden;
+        transition: box-shadow 0.2s ease;
+    }
+    
+    .card:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05);
+    }
+    
+    .card-header {
+        padding: 20px 24px 16px;
+        border-bottom: 1px solid #E4E7EC;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .card-body {
+        padding: 24px;
+    }
+    
+    /* 表格样式 */
+    table {
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100%;
+        margin-bottom: 24px;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #FFFFFF;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    th {
+        background-color: #F7F8FB;
+        color: #202124;
+        font-weight: 600;
+        text-align: left;
+        padding: 16px 20px;
+        border-bottom: 1px solid #E4E7EC;
+        font-size: 0.9rem;
+    }
+    
+    td {
+        padding: 12px 20px;
+        border-bottom: 1px solid #E4E7EC;
+        color: #202124;
+        font-size: 0.95rem;
+    }
+    
+    tr:last-child td {
+        border-bottom: none;
+    }
+    
+    /* 状态样式 */
+    .up {
+        color: #40B66B;
+        font-weight: 500;
+    }
+    
+    .down {
+        color: #D82C0D;
+        font-weight: 500;
+    }
+    
+    .alert {
+        color: #F2A91B;
+        font-weight: 500;
+    }
+    
+    .golden-cross {
+        color: #40B66B;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+    }
+    
+    .golden-cross::before {
+        content: "";
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #40B66B;
+        margin-right: 10px;
+    }
+    
+    .death-cross {
+        color: #D82C0D;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+    }
+    
+    .death-cross::before {
+        content: "";
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #D82C0D;
+        margin-right: 10px;
+    }
+    
+    /* 图片样式 */
+    img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    /* 链接样式 */
+    a {
+        color: #5E6AD2;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+    
+    a:hover {
+        color: #4954B8;
+        text-decoration: underline;
+    }
+    
+    /* 警报列表样式 */
+    ul {
+        list-style-type: none;
+        padding-left: 0;
+    }
+    
+    li {
+        padding: 10px 16px;
+        border-left: 3px solid transparent;
+        margin-bottom: 8px;
+        background-color: #F7F8FB;
+        border-radius: 0 4px 4px 0;
+        transition: all 0.2s ease;
+    }
+    
+    li.golden-cross {
+        border-left-color: #40B66B;
+        background-color: rgba(64, 182, 107, 0.05);
+    }
+    
+    li.death-cross {
+        border-left-color: #D82C0D;
+        background-color: rgba(216, 44, 13, 0.05);
+    }
+    
+    /* 重要指标样式 */
+    .metrics-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        grid-gap: 16px;
+        margin-bottom: 24px;
+    }
+    
+    .metric-card {
+        background-color: #FFFFFF;
+        border-radius: 8px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    .metric-name {
+        font-size: 0.9rem;
+        color: #8A919E;
+        margin-bottom: 4px;
+    }
+    
+    .metric-value {
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: #202124;
+        line-height: 1.2;
+        margin-bottom: 4px;
+    }
+    
+    .metric-change {
+        font-size: 0.9rem;
+    }
+    
+    /* 响应式设计 */
+    @media screen and (max-width: 768px) {
+        body {
+            padding: 20px;
+        }
+        
+        .metrics-container {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        h1 {
+            font-size: 2rem;
+        }
+        
+        h2 {
+            font-size: 1.75rem;
+        }
+        
+        table {
+            display: block;
+            overflow-x: auto;
+        }
+    }
+    
+    @media screen and (max-width: 480px) {
+        .metrics-container {
+            grid-template-columns: 1fr;
+        }
+    }
+
+            </style>
+        </head>
+        <body>
+            <h1>股票分析报告 <span style="font-weight: 400; font-size: 1.2rem; color: #8A919E; margin-left: 12px;">2025年05月26日</span></h1>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2 style="margin: 0;">市场概览</h2>
+                </div>
+                <div class="card-body">
+                    <p>详细数据已保存到 <a href="stock_analysis.xlsx">stock_analysis.xlsx</a></p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>股票代码</th>
+                                <th>当前价格</th>
+                                <th>价格变化</th>
+                                <th>RSI</th>
+                                <th>警报数量</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        
+                <tr>
+                    <td>^HSI</td>
+                    <td colspan="4" style="color: #D82C0D;">Error: 无法获取股票数据</td>
+                </tr>
+                
+                <tr>
+                    <td>3032.HK</td>
+                    <td colspan="4" style="color: #D82C0D;">Error: 无法获取股票数据</td>
+                </tr>
+                
+                <tr>
+                    <td>9988.HK</td>
+                    <td colspan="4" style="color: #D82C0D;">Error: 无法获取股票数据</td>
+                </tr>
+                
+                <tr>
+                    <td>0700.HK</td>
+                    <td colspan="4" style="color: #D82C0D;">Error: 无法获取股票数据</td>
+                </tr>
+                
+                <tr>
+                    <td>3690.HK</td>
+                    <td colspan="4" style="color: #D82C0D;">Error: 无法获取股票数据</td>
+                </tr>
+                
+                <tr>
+                    <td>0005.HK</td>
+                    <td colspan="4" style="color: #D82C0D;">Error: 无法获取股票数据</td>
+                </tr>
+                
+                <tr>
+                    <td>0992.HK</td>
+                    <td colspan="4" style="color: #D82C0D;">Error: 无法获取股票数据</td>
+                </tr>
+                
+                <tr>
+                    <td>9992.HK</td>
+                    <td colspan="4" style="color: #D82C0D;">Error: 无法获取股票数据</td>
+                </tr>
+                
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2 style="margin: 0;">详细分析</h2>
+                </div>
+            </div>
+        
+            <footer style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #E4E7EC; text-align: center; color: #8A919E; font-size: 0.9rem;">
+                <p>EMA 股票分析工具 © 版权所有</p>
+            </footer>
+        </body>
+        </html>
+        
