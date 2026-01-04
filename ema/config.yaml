@@ -5,26 +5,34 @@ stocks:
   - 9988.HK # 阿里巴巴
   - 0700.HK # 腾讯控股
   - 3690.HK # 美团
-  - 0005.HK # 汇丰控股
-  - 0992.HK # 联想集团
-  - 9992.HK # 泡泡玛特
-  - 1810.HK # 小米集团
-  - 2097.HK # 蜜雪集团
-  - 6181.HK # 老铺黄金
-  - 1318.HK # 毛戈平
-  - 9926.HK # 康方生物
-  - 9896.HK # 名创优品
+  # - 0005.HK # 汇丰控股
+  # - 0992.HK # 联想集团
+  # - 9992.HK # 泡泡玛特
+  # - 1810.HK # 小米集团
+  # - 2097.HK # 蜜雪集团
+  # - 6181.HK # 老铺黄金
+  # - 1318.HK # 毛戈平
+  # - 9926.HK # 康方生物
+  # - 9896.HK # 名创优品
 
-  # - SPY
-  # - QQQ
+  - SPY
+  - QQQ
   # - LLY
-  # - MSFT   # 微软
-  # - GOOGL  # 谷歌
-  # - NVDA   # 英伟达
-  # - TSLA   # 特斯拉
-  # - FUTU
+  - MSFT   # 微软
+  - GOOGL  # 谷歌
+  - NVDA   # 英伟达
+  - TSLA   # 特斯拉
+  - FUTU
   # - TIGR
-  # - TSM
+  - RKLB
+  - HIMS
+  - SOFI
+  - NBIS
+  - TSM
+  - SATS
+  - HOOD
+  - CRCL
+  - UNH
   # - MU
   # - MSTR
   # - OXY
@@ -32,18 +40,21 @@ stocks:
   # - PYPL
   # - V
   # - COST
-  # - AMZN   # 亚马逊
-  # - META   # Meta
-  # - AAPL   # 苹果
+  - AMZN   # 亚马逊
+  - META   # Meta
+  - AAPL   # 苹果
   # - KO
   # - NKE
   # - MCD
   # - FSLR
   # - DXYZ
   # - RBLX
-  # - PLTR
+  - PLTR
   # - BABA
   # - PDD
+  # - IBKR
+  # - VSAT
+  # - RDW
 
 
 # 分析设置

@@ -12,12 +12,13 @@ import yfinance as yf
 import pandas as pd
 from datetime import datetime, timedelta
 import os
+from collections import Counter # 引入Counter
 
 from utils.constants import Colors
 from utils.config import load_config
 from utils.analysis import calculate_indicators
 from utils.alerts import generate_alerts
-from utils.report import save_analysis_plot, generate_html_report
+from utils.report import save_analysis_plot, generate_report
 
 def analyze_stock(symbol, start_date, end_date, output_dir):
     """
@@ -47,14 +48,17 @@ def analyze_stock(symbol, start_date, end_date, output_dir):
         data = calculate_indicators(data)
         
         # 生成警报（用于终端显示）
-        alerts = generate_alerts(symbol, data, use_colors=True)
+        terminal_alerts = generate_alerts(symbol, data, use_colors=True)
         # 打印带颜色的警报
-        for alert in alerts:
-            print(alert)
+        for alert in terminal_alerts:
+            print(alert['message']) # 打印消息本身
             
         # 生成不带颜色的警报（用于报告）
         report_alerts = generate_alerts(symbol, data, use_colors=False)
         
+        # 统计警报类型
+        alert_counts = Counter(alert['type'] for alert in report_alerts)
+
         # 获取最新价格和价格变化
         latest_close = data['Close'].iloc[-1].item()
         prev_close = data['Close'].iloc[-2].item()
@@ -72,6 +76,7 @@ def analyze_stock(symbol, start_date, end_date, output_dir):
             'price_change_pct': price_change_pct,
             'rsi': data['RSI'].iloc[-1].item(),
             'alert_details': report_alerts,  # 使用不带颜色的警报
+            'alert_counts': dict(alert_counts), # 添加警报统计
             'error': None
         }
         
@@ -96,6 +101,7 @@ def main():
     # 分析所有股票
     results = []
     success_count = 0
+    total_alert_counts = Counter() # 用于汇总所有股票的警报统计
     
     for symbol in config['stocks']:
         result = analyze_stock(
@@ -107,9 +113,11 @@ def main():
         results.append(result)
         if not result.get('error'):
             success_count += 1
+            if 'alert_counts' in result: # 累加警报统计
+                total_alert_counts.update(result['alert_counts'])
     
     # 生成HTML报告
-    generate_html_report(results, output_dir)
+    generate_report(results, output_dir) # 传递包含警报统计的results
     
     # 打印分析完成信息
     print(f"\n分析完成！")
@@ -117,6 +125,12 @@ def main():
     print(f"分析结果已保存到目录: {output_dir}")
     print("生成的文件：")
     print("- analysis_results.html：完整分析结果（包含图表和详细信息）")
+
+    # 打印警报统计
+    if total_alert_counts:
+        print("\n警报类型统计:")
+        for alert_type, count in total_alert_counts.items():
+            print(f"- {alert_type}: {count}")
 
 if __name__ == '__main__':
     main()

@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from .constants import Colors, EMA_PERIODS
 import pandas as pd
 from openpyxl.utils import get_column_letter
+from collections import Counter # 引入Counter
 
 def remove_ansi_colors(text):
     """移除文本中的 ANSI 颜色代码
@@ -76,6 +77,27 @@ def save_analysis_plot(data, symbol, output_dir):
                 color=colors.get('primary', '#007ACC'), 
                 linewidth=2.5, 
                 alpha=0.9)
+
+        # 绘制布林带
+        if all(col in data_plot.columns for col in ['BB_upper', 'BB_middle', 'BB_lower']):
+            # 绘制上轨和下轨
+            ax1.plot(data_plot.index, data_plot['BB_upper'], 
+                    label='BB Upper', 
+                    color=colors.get('chart_gray', '#95A5A6'), 
+                    linestyle='--', 
+                    linewidth=1.0, 
+                    alpha=0.6)
+            ax1.plot(data_plot.index, data_plot['BB_lower'], 
+                    label='BB Lower', 
+                    color=colors.get('chart_gray', '#95A5A6'), 
+                    linestyle='--', 
+                    linewidth=1.0, 
+                    alpha=0.6)
+            # 填充中间区域
+            ax1.fill_between(data_plot.index, data_plot['BB_upper'], data_plot['BB_lower'],
+                            color=colors.get('chart_gray', '#95A5A6'),
+                            alpha=0.1,
+                            label='BB Range')
         
         # 定义要绘制的EMA周期和对应的颜色、样式
         # 用户要求: Price/EMA5, EMA10, EMA20, 和 EMA200
@@ -198,10 +220,17 @@ def format_value(value):
     if isinstance(value, float):
         return f"{value:.2f}"
     if isinstance(value, pd.Series):
-        return f"{value.iloc[0]:.2f}"
+        return f"{value.iloc[-1]:.2f}" if not value.empty else "N/A"
+    if isinstance(value, (int, str)):
+        return str(value)
+    if value is None:
+        return "N/A"
     return str(value)
 
-def save_to_excel(results, output_dir):
+
+
+
+def generate_excel_report(results, output_dir):
     """保存数据到Excel文件
     Args:
         results (list): 分析结果列表
@@ -295,7 +324,12 @@ def save_to_excel(results, output_dir):
                         'Close': '收盘价',
                         'Adj Close': '调整后收盘价',
                         'Volume': '成交量',
-                        'RSI': 'RSI'
+                        'RSI': 'RSI',
+                        'BB_upper': '布林带上轨',
+                        'BB_middle': '布林带中轨',
+                        'BB_lower': '布林带下轨',
+                        'BB_width': '布林带宽度',
+                        'BB_percent': '%B指标'
                     }
                     for period in EMA_PERIODS:
                         rename_map[f'EMA_{period}'] = f'{period}日均线'
@@ -335,7 +369,7 @@ def save_to_excel(results, output_dir):
     except Exception as e:
         print(f"{Colors.RED}Error saving Excel file: {str(e)}{Colors.END}")
 
-def generate_html_report(results, output_dir):
+def generate_report(results, output_dir):
     """生成HTML报告
     Args:
         results (list): 分析结果列表
@@ -343,7 +377,7 @@ def generate_html_report(results, output_dir):
     """
     try:
         # 保存Excel文件
-        save_to_excel(results, output_dir)
+        generate_excel_report(results, output_dir)
         
         # 导入样式模块
         from .styles import get_css_styles
@@ -445,6 +479,13 @@ def generate_html_report(results, output_dir):
             price_change_pct = format_value(result['price_change_pct'])
             rsi = format_value(result['rsi'])
             change_class = 'up' if float(price_change) > 0 else 'down'
+
+            # 嵌入图表
+            plot_data = ''
+            plot_filename = os.path.join(output_dir, f"{result['symbol']}_analysis_plot.png")
+            if os.path.exists(plot_filename):
+                with open(plot_filename, "rb") as image_file:
+                    plot_data = base64.b64encode(image_file.read()).decode()
             
             html += f"""
             <div class="card stock-detail">
@@ -475,7 +516,7 @@ def generate_html_report(results, output_dir):
                     </div>
                     
                     <!-- 分析图表 -->
-                    <img src="{result['symbol']}_analysis_plot.png" alt="{result['symbol']} 分析图表">
+                    <img src="data:image/png;base64,{plot_data}" alt="{result['symbol']} 分析图表">
             """
             
             # 添加警报信息
@@ -487,10 +528,13 @@ def generate_html_report(results, output_dir):
                     <div class="card-body">
                         <ul>"""
                 for alert in result['alert_details']:
+                    # 从字典中获取消息
+                    alert_message = alert.get('message', '')
+
                     # 提取日期并检查是否在最近10天内
                     import re
                     from datetime import datetime, timedelta
-                    date_match = re.search(r'发生于：(\d{4}-\d{2}-\d{2})', alert)
+                    date_match = re.search(r'发生于：(\d{4}-\d{2}-\d{2})', alert_message)
                     is_recent = False
                     if date_match:
                         alert_date = datetime.strptime(date_match.group(1), '%Y-%m-%d')
@@ -499,7 +543,7 @@ def generate_html_report(results, output_dir):
                         is_recent = days_diff <= 10
                     
                     # 清除ANSI颜色代码
-                    clean_alert = remove_ansi_colors(alert)
+                    clean_alert = remove_ansi_colors(alert_message)
                     
                     # 替换常见的中英文混排情况，添加空格
                     import re
@@ -514,10 +558,12 @@ def generate_html_report(results, output_dir):
                         html += f'<li class="golden-cross">{clean_alert}</li>'
                     elif '死叉' in clean_alert or '下穿' in clean_alert or '卖出' in clean_alert or '看跌' in clean_alert:
                         html += f'<li class="death-cross">{clean_alert}</li>'
-                    elif 'RSI 超买' in clean_alert or 'RSI超买' in clean_alert:
+                    elif 'RSI 超买' in clean_alert or 'RSI超买' in clean_alert or '突破上轨' in clean_alert:
                         html += f'<li class="death-cross">{clean_alert}</li>'
-                    elif 'RSI 超卖' in clean_alert or 'RSI超卖' in clean_alert:
+                    elif 'RSI 超卖' in clean_alert or 'RSI超卖' in clean_alert or '跌破下轨' in clean_alert:
                         html += f'<li class="golden-cross">{clean_alert}</li>'
+                    elif '布林带收口' in clean_alert:
+                        html += f'<li class="golden-cross" style="color: #F39C12;">{clean_alert}</li>'
                     else:
                         # 如果不是交叉信号，使用普通样式
                         html += f'<li>{clean_alert}</li>'

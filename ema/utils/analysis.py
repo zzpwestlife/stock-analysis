@@ -210,6 +210,95 @@ def detect_macd_signals(data):
         print(f"{Colors.RED}Error detecting MACD signals: {str(e)}{Colors.END}")
         return signals
 
+def calculate_bollinger_bands(data, period=20, std_dev=2):
+    """计算布林带
+    Args:
+        data (pd.DataFrame): 股票数据
+        period (int): 周期
+        std_dev (float): 标准差倍数
+    Returns:
+        tuple: (上轨, 中轨, 下轨, 带宽, %B)
+    """
+    try:
+        # 计算中轨 (简单移动平均)
+        middle_band = data['Close'].rolling(window=period).mean()
+        
+        # 计算标准差
+        std = data['Close'].rolling(window=period).std()
+        
+        # 计算上轨和下轨
+        upper_band = middle_band + (std * std_dev)
+        lower_band = middle_band - (std * std_dev)
+        
+        # 计算带宽 (Bandwidth)
+        bandwidth = (upper_band - lower_band) / middle_band
+        
+        # 计算 %B (Percent B)
+        percent_b = (data['Close'] - lower_band) / (upper_band - lower_band)
+        
+        return upper_band, middle_band, lower_band, bandwidth, percent_b
+    except Exception as e:
+        print(f"{Colors.RED}Error calculating Bollinger Bands: {str(e)}{Colors.END}")
+        return (pd.Series(index=data.index), pd.Series(index=data.index), 
+                pd.Series(index=data.index), pd.Series(index=data.index), 
+                pd.Series(index=data.index))
+
+def detect_bollinger_signals(data):
+    """检测布林带信号
+    Args:
+        data (pd.DataFrame): 股票数据
+    Returns:
+        dict: 布林带信号字典
+    """
+    signals = {
+        'upper_cross': None,
+        'upper_date': None,
+        'lower_cross': None,
+        'lower_date': None,
+        'squeeze': None,
+        'squeeze_date': None
+    }
+    
+    try:
+        latest_date = data.index[-1]
+        close = data['Close']
+        upper = data['BB_upper']
+        lower = data['BB_lower']
+        bandwidth = data['BB_width']
+        
+        # 获取最新和前一天的值
+        curr_close = close.iloc[-1].item()
+        prev_close = close.iloc[-2].item()
+        curr_upper = upper.iloc[-1].item()
+        prev_upper = upper.iloc[-2].item()
+        curr_lower = lower.iloc[-1].item()
+        prev_lower = lower.iloc[-2].item()
+        
+        # 检测价格突破上轨
+        if prev_close < prev_upper and curr_close > curr_upper:
+            signals['upper_cross'] = '突破上轨（可能超买）'
+            signals['upper_date'] = latest_date
+            
+        # 检测价格跌破下轨
+        if prev_close > prev_lower and curr_close < curr_lower:
+            signals['lower_cross'] = '跌破下轨（可能超卖）'
+            signals['lower_date'] = latest_date
+            
+        # 检测布林带收口 (Squeeze) - 带宽处于低位
+        # 这里简单定义为最近20天内的最低带宽
+        recent_bandwidth = bandwidth.iloc[-20:]
+        min_bandwidth = recent_bandwidth.min()
+        curr_bandwidth = bandwidth.iloc[-1].item()
+        
+        if curr_bandwidth <= min_bandwidth * 1.05: # 接近近期低点
+            signals['squeeze'] = '布林带收口（变盘前兆）'
+            signals['squeeze_date'] = latest_date
+            
+        return signals
+    except Exception as e:
+        print(f"{Colors.RED}Error detecting Bollinger signals: {str(e)}{Colors.END}")
+        return signals
+
 def calculate_indicators(data):
     """计算技术指标
     Args:
@@ -230,6 +319,14 @@ def calculate_indicators(data):
         data['MACD_line'] = macd_line
         data['MACD_signal'] = signal_line
         data['MACD_hist'] = macd_hist
+        
+        # 计算布林带
+        upper, middle, lower, width, percent = calculate_bollinger_bands(data)
+        data['BB_upper'] = upper
+        data['BB_middle'] = middle
+        data['BB_lower'] = lower
+        data['BB_width'] = width
+        data['BB_percent'] = percent
         
         return data
     except Exception as e:
